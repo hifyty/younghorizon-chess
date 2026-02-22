@@ -17,12 +17,10 @@ a{color:inherit;text-decoration:none}
 .rv{opacity:0;transform:translateY(24px);transition:opacity .6s,transform .6s}
 .rv.on{opacity:1;transform:none}
 @keyframes fl{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-14px) rotate(3deg)}}
-@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
 nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:68px;background:rgba(26,18,16,.95);backdrop-filter:blur(14px);border-bottom:1px solid rgba(201,168,76,.2);transition:height .3s}
 .nl{display:flex;align-items:center;gap:12px}
-.nl .pc{font-size:1.5rem}
-.nl .nm{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;color:var(--gold);line-height:1.1}
-.nl .sb{font-size:.58rem;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:2px}
+.nm{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;color:var(--gold);line-height:1.1}
+.nav-sub{font-size:.58rem;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:2px}
 .nv{display:flex;align-items:center;gap:28px}
 .nv a{font-size:.75rem;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.55);transition:color .2s}
 .nv a:hover{color:var(--gold)}
@@ -76,15 +74,14 @@ section{padding:100px 80px}
 .sch .st em{color:var(--gold)}
 .sch .se{color:var(--gold-d)}
 .sch .sb{color:rgba(245,240,232,.52)}
-.sg{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:52px}
-.dc{background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.14);border-radius:4px;padding:28px;transition:all .3s}
-.dc:hover{background:rgba(201,168,76,.06);border-color:rgba(201,168,76,.32);transform:translateY(-4px)}
-.dn{font-family:'Cormorant Garamond',serif;font-size:1.28rem;font-weight:700;color:var(--gold);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(201,168,76,.18)}
-.ts{display:flex;gap:14px;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
-.ts:last-child{border-bottom:none}
-.tt{font-family:'DM Mono',monospace;font-size:.68rem;color:rgba(245,240,232,.32);min-width:80px;padding-top:2px}
-.ta{font-size:.86rem;color:rgba(245,240,232,.72)}
-.ta strong{color:var(--ivory);display:block;font-weight:600}
+.dc{background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.14);border-radius:4px;padding:24px;margin-bottom:20px;transition:all .3s}
+.dc:hover{background:rgba(201,168,76,.06);border-color:rgba(201,168,76,.32)}
+.dn{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:700;color:var(--gold);margin-bottom:12px}
+.dl{display:flex;flex-direction:column;gap:8px}
+.di{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03)}
+.di:last-child{border-bottom:none}
+.db{width:6px;height:6px;background:var(--gold);border-radius:50%;margin-top:6px;flex-shrink:0}
+.dt{font-size:.84rem;color:rgba(245,240,232,.75);line-height:1.5}
 .pg{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:52px;align-items:start}
 .pc{border-radius:4px;padding:36px 30px;position:relative;transition:all .3s;background:var(--ivory);border:1px solid var(--ivory-d)}
 .pc:hover{transform:translateY(-4px);box-shadow:0 10px 36px rgba(26,18,16,.16)}
@@ -170,7 +167,7 @@ footer{background:var(--ink);padding:56px 80px 32px;border-top:1px solid rgba(20
   nav{padding:0 28px}
   .stats{grid-template-columns:repeat(2,1fr)}
   .ag,.rg{grid-template-columns:1fr;gap:44px}
-  .sg,.pg,.fg{grid-template-columns:1fr}
+  .pg,.fg{grid-template-columns:1fr}
   .pf{transform:none}
   .ft{grid-template-columns:1fr 1fr}
   .nl2,.ct{padding:56px 48px}
@@ -198,10 +195,9 @@ footer{background:var(--ink);padding:56px 80px 32px;border-top:1px solid rgba(20
 
 <nav id="mn">
   <div class="nl">
-    <span class="pc">&#9823;</span>
     <div>
       <div class="nm">Young Horizon Chess</div>
-      <div class="sb">Edgemont, Edmonton &middot; 2026</div>
+      <div class="nav-sub">Edgemont, Edmonton · 2026</div>
     </div>
   </div>
   <div class="nv">
@@ -211,36 +207,36 @@ footer{background:var(--ink);padding:56px 80px 32px;border-top:1px solid rgba(20
     <a href="#faq">FAQ</a>
     <a href="#register" class="nc">Register Now</a>
   </div>
-  <button class="mb" onclick="openMenu()" aria-label="Menu">&#9776;</button>
+  <button class="mb" onclick="tg()" aria-label="Menu">☰</button>
 </nav>
-<div class="mm" id="mob">
-  <a href="#about" onclick="closeMenu()">About the Camp</a>
-  <a href="#schedule" onclick="closeMenu()">Daily Schedule</a>
-  <a href="#pricing" onclick="closeMenu()">Pricing</a>
-  <a href="#faq" onclick="closeMenu()">FAQ</a>
-  <a href="#register" onclick="closeMenu()" style="color:var(--gold);font-weight:700;">&#9823; Register Now</a>
+<div class="mm" id="mb">
+  <a href="#about" onclick="tg()">About the Camp</a>
+  <a href="#schedule" onclick="tg()">Daily Schedule</a>
+  <a href="#pricing" onclick="tg()">Pricing</a>
+  <a href="#faq" onclick="tg()">FAQ</a>
+  <a href="#register" onclick="tg()" style="color:var(--gold);font-weight:700;">Register Now</a>
 </div>
 
 <section class="hero">
   <div class="hg"></div>
   <div class="hp">
     <div class="hc">
-      <div class="hpc" style="top:0;left:46%;color:var(--gold);">&#9819;</div>
-      <div class="hpc" style="color:rgba(255,255,255,.45);">&#9822;</div>
-      <div class="hpc" style="color:rgba(255,255,255,.38);">&#9820;</div>
-      <div class="hpc" style="color:rgba(201,168,76,.55);">&#9821;</div>
+      <div class="hpc" style="top:0;left:46%;color:var(--gold);">♛</div>
+      <div class="hpc" style="color:rgba(255,255,255,.45);">♞</div>
+      <div class="hpc" style="color:rgba(255,255,255,.38);">♜</div>
+      <div class="hpc" style="color:rgba(201,168,76,.55);">♝</div>
     </div>
   </div>
   <div class="ht">
     <h1>Master the<br><em>Game of Kings</em></h1>
     <p class="hs">A two-week intensive chess boot camp for curious minds aged 6-12. Build strategy, sharpen focus, and discover your inner grandmaster.</p>
     <div class="hd">
-      <div class="hdi"><span>&#128197;</span><span><strong>July 13-24, 2026</strong>Monday to Friday</span></div>
-      <div class="hdi"><span>&#9200;</span><span><strong>9:00 AM - 3:00 PM</strong>Full day program</span></div>
-      <div class="hdi"><span>&#128205;</span><span><strong>Edgemont, Edmonton NW</strong>Venue TBA</span></div>
+      <div class="hdi"><span>📅</span><span><strong>July 13-24, 2026</strong>Monday to Friday</span></div>
+      <div class="hdi"><span>⏰</span><span><strong>9:00 AM - 3:00 PM</strong>Full day program</span></div>
+      <div class="hdi"><span>📍</span><span><strong>Edgemont, Edmonton NW</strong>Venue TBA</span></div>
     </div>
     <div class="hb">
-      <a href="#register" class="bg">&#9823; Reserve Your Spot</a>
+      <a href="#register" class="bg">♟ Reserve Your Spot</a>
       <a href="#about" class="bw">Learn More</a>
     </div>
   </div>
@@ -259,13 +255,13 @@ footer{background:var(--ink);padding:56px 80px 32px;border-top:1px solid rgba(20
   <p class="sb rv">Chess teaches children to think ahead, stay patient, and make confident decisions - skills that pay off in school, sports, and life. Our boot camp meets every child where they are, from first-time players to tournament-ready competitors.</p>
   <div class="ag">
     <div class="rv">
-      <div class="bd" id="board"></div>
+      <div class="bd" id="bd"></div>
     </div>
     <div>
-      <div class="sk rv"><div class="ski">&#129504;</div><div><div class="skt">Critical Thinking</div><div class="skd">Children learn to evaluate options, anticipate consequences, and develop long-term plans - transferable to every subject in school.</div></div></div>
-      <div class="sk rv"><div class="ski">&#127919;</div><div><div class="skt">Focus & Concentration</div><div class="skd">Each session builds sustained attention and the ability to tune out distractions - a growing challenge for today's kids.</div></div></div>
-      <div class="sk rv"><div class="ski">&#129309;</div><div><div class="skt">Sportsmanship & Resilience</div><div class="skd">Learning to win gracefully and lose with dignity builds emotional intelligence that lasts a lifetime.</div></div></div>
-      <div class="sk rv"><div class="ski">&#128161;</div><div><div class="skt">Creative Problem Solving</div><div class="skd">Every chess position is a unique puzzle. Children develop creative thinking as they explore countless possibilities.</div></div></div>
+      <div class="sk rv"><div class="ski">🧠</div><div><div class="skt">Critical Thinking</div><div class="skd">Children learn to evaluate options, anticipate consequences, and develop long-term plans - transferable to every subject in school.</div></div></div>
+      <div class="sk rv"><div class="ski">🎯</div><div><div class="skt">Focus & Concentration</div><div class="skd">Each session builds sustained attention and the ability to tune out distractions - a growing challenge for today's kids.</div></div></div>
+      <div class="sk rv"><div class="ski">🤝</div><div><div class="skt">Sportsmanship & Resilience</div><div class="skd">Learning to win gracefully and lose with dignity builds emotional intelligence that lasts a lifetime.</div></div></div>
+      <div class="sk rv"><div class="ski">💡</div><div><div class="skt">Creative Problem Solving</div><div class="skd">Every chess position is a unique puzzle. Children develop creative thinking as they explore countless possibilities.</div></div></div>
     </div>
   </div>
 </section>
@@ -273,21 +269,25 @@ footer{background:var(--ink);padding:56px 80px 32px;border-top:1px solid rgba(20
 <section class="sch" id="schedule">
   <div class="se">Daily Schedule</div>
   <h2 class="st rv">Two weeks.<br><em>Perfectly structured.</em></h2>
-  <p class="sb rv">Each day balances instruction, guided play, and fun - keeping energy high while maximising learning. Skill groups are assigned on Day 1.</p>
-  <div class="sg">
+  <p class="sb rv">Each day is carefully designed to balance instruction, guided play, and fun - keeping energy high while maximising learning. Skill groups are assigned on Day 1.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:56px;">
     <div class="dc rv">
       <div class="dn">Morning Block</div>
-      <div class="ts"><div class="tt">8:45 AM</div><div class="ta"><strong>Drop-Off & Warm-Up</strong>Puzzle stations, settle in</div></div>
-      <div class="ts"><div class="tt">9:00 AM</div><div class="ta"><strong>Chess Lesson</strong>Skill-grouped instruction by level</div></div>
-      <div class="ts"><div class="tt">10:30 AM</div><div class="ta"><strong>Break</strong>Snacks, stretch, fresh air</div></div>
-      <div class="ts"><div class="tt">10:45 AM</div><div class="ta"><strong>Guided Play & Drills</strong>Apply the lesson, practice tactics</div></div>
+      <div class="dl">
+        <div class="di"><div class="db"></div><div class="dt"><strong>8:45 AM - Drop-Off & Warm-Up</strong><br>Puzzle stations, settle in</div></div>
+        <div class="di"><div class="db"></div><div class="dt"><strong>9:00 AM - Chess Lesson</strong><br>Skill-grouped instruction by level</div></div>
+        <div class="di"><div class="db"></div><div class="dt"><strong>10:30 AM - Break</strong><br>Snacks, stretch, fresh air</div></div>
+        <div class="di"><div class="db"></div><div class="dt"><strong>10:45 AM - Guided Play & Drills</strong><br>Apply the lesson, practice tactics</div></div>
+      </div>
     </div>
     <div class="dc rv">
       <div class="dn">Afternoon Block</div>
-      <div class="ts"><div class="tt">12:00 PM</div><div class="ta"><strong>Lunch Break</strong>Bring your own lunch & water bottle</div></div>
-      <div class="ts"><div class="tt">1:00 PM</div><div class="ta"><strong>Activities & Games</strong>Mini-tournaments, team chess, puzzles</div></div>
-      <div class="ts"><div class="tt">2:15 PM</div><div class="ta"><strong>Tournament Time</strong>Friendly competitions & challenges</div></div>
-      <div class="ts"><div class="tt">2:45 PM</div><div class="ta"><strong>Wrap-Up & Pickup</strong>Reflection, certificate days, pickup</div></div>
+      <div class="dl">
+        <div class="di"><div class="db"></div><div class="dt"><strong>12:00 PM - Lunch Break</strong><br>Bring your own lunch & water bottle</div></div>
+        <div class="di"><div class="db"></div><div class="dt"><strong>1:00 PM - Activities & Games</strong><br>Mini-tournaments, team chess, puzzles</div></div>
+        <div class="di"><div class="db"></div><div class="dt"><strong>2:15 PM - Tournament Time</strong><br>Friendly competitions & challenges</div></div>
+        <div class="di"><div class="db"></div><div class="dt"><strong>2:45 PM - Wrap-Up & Pickup</strong><br>Reflection, certificate days, pickup</div></div>
+      </div>
     </div>
   </div>
 </section>
@@ -302,10 +302,10 @@ footer{background:var(--ink);padding:56px 80px 32px;border-top:1px solid rgba(20
       <div class="pa"><sup>$</sup>299</div>
       <div class="pd">Register before <strong>May 31, 2026</strong> and save $51 per child.</div>
       <div class="pfs">
-        <div class="pfi"><span>&#10003;</span>Full 10-day program</div>
-        <div class="pfi"><span>&#10003;</span>All chess materials</div>
-        <div class="pfi"><span>&#10003;</span>Completion certificate</div>
-        <div class="pfi"><span>&#10003;</span>Skill-level grouping</div>
+        <div class="pfi"><span>✓</span>Full 10-day program</div>
+        <div class="pfi"><span>✓</span>All chess materials</div>
+        <div class="pfi"><span>✓</span>Completion certificate</div>
+        <div class="pfi"><span>✓</span>Skill-level grouping</div>
       </div>
       <a href="#register" class="be">Register Early</a>
     </div>
@@ -314,11 +314,11 @@ footer{background:var(--ink);padding:56px 80px 32px;border-top:1px solid rgba(20
       <div class="pa"><sup>$</sup>350</div>
       <div class="pd">Full two-week boot camp. Everything your child needs to excel.</div>
       <div class="pfs">
-        <div class="pfi"><span>&#10003;</span>Full 10-day program</div>
-        <div class="pfi"><span>&#10003;</span>All chess materials</div>
-        <div class="pfi"><span>&#10003;</span>Completion certificate</div>
-        <div class="pfi"><span>&#10003;</span>Skill-level grouping</div>
-        <div class="pfi"><span>&#10003;</span>Photo & memory booklet</div>
+        <div class="pfi"><span>✓</span>Full 10-day program</div>
+        <div class="pfi"><span>✓</span>All chess materials</div>
+        <div class="pfi"><span>✓</span>Completion certificate</div>
+        <div class="pfi"><span>✓</span>Skill-level grouping</div>
+        <div class="pfi"><span>✓</span>Photo & memory booklet</div>
       </div>
       <a href="#register" class="be bg2">Secure Your Spot</a>
     </div>
@@ -327,10 +327,10 @@ footer{background:var(--ink);padding:56px 80px 32px;border-top:1px solid rgba(20
       <div class="pa"><sup>$</sup>299</div>
       <div class="pd">Second child from the same family registers at the early-bird rate, always.</div>
       <div class="pfs">
-        <div class="pfi"><span>&#10003;</span>Full 10-day program</div>
-        <div class="pfi"><span>&#10003;</span>All chess materials</div>
-        <div class="pfi"><span>&#10003;</span>Completion certificate</div>
-        <div class="pfi"><span>&#10003;</span>Sibling discount applied</div>
+        <div class="pfi"><span>✓</span>Full 10-day program</div>
+        <div class="pfi"><span>✓</span>All chess materials</div>
+        <div class="pfi"><span>✓</span>Completion certificate</div>
+        <div class="pfi"><span>✓</span>Sibling discount applied</div>
       </div>
       <a href="#register" class="be">Register Sibling</a>
     </div>
@@ -343,24 +343,24 @@ footer{background:var(--ink);padding:56px 80px 32px;border-top:1px solid rgba(20
   <p class="sb rv">Seats are limited - register early to secure your place. Pay now online or submit the inquiry form and we'll follow up within 24 hours.</p>
   <div class="rg">
     <div>
-      <div class="rc rv"><div class="rct">&#128197; Camp Dates</div><div class="rcb"><strong>July 13-24, 2026</strong><br>Monday to Friday &middot; 9:00 AM - 3:00 PM<br>Drop-off from 8:45 AM</div></div>
-      <div class="rc rv"><div class="rct">&#128179; Payment Options</div><div class="rcb">Pay securely now via Stripe - instant confirmation & spot reserved. Or complete the inquiry form and we'll send your payment link within 24 hours.</div></div>
-      <div class="rc rv"><div class="rct">&#8617; Cancellation Policy</div><div class="rcb">Full refund before <strong>June 30, 2026</strong>.<br>50% refund before July 7.<br>No refund after July 7.</div></div>
-      <div class="rc rv"><div class="rct">&#128222; Questions?</div><div class="rcb"><strong>support@younghorizonchess.ca</strong><br><strong>437-216-3282</strong><br>We respond within 1 business day.</div></div>
+      <div class="rc rv"><div class="rct">📅 Camp Dates</div><div class="rcb"><strong>July 13-24, 2026</strong><br>Monday to Friday · 9:00 AM - 3:00 PM<br>Drop-off from 8:45 AM</div></div>
+      <div class="rc rv"><div class="rct">💳 Payment Options</div><div class="rcb">Pay securely now via Stripe - instant confirmation & spot reserved. Or complete the inquiry form and we'll send your payment link within 24 hours.</div></div>
+      <div class="rc rv"><div class="rct">↩️ Cancellation Policy</div><div class="rcb">Full refund before <strong>June 30, 2026</strong>.<br>50% refund before July 7.<br>No refund after July 7.</div></div>
+      <div class="rc rv"><div class="rct">📞 Questions?</div><div class="rcb"><strong>support@younghorizonchess.ca</strong><br><strong>437-216-3282</strong><br>We respond within 1 business day.</div></div>
     </div>
     <div class="fc rv">
       <div class="fct">Register & Pay</div>
       <div class="fcs">Choose your option below</div>
-      <span class="ls">&#128179; Option 1 - Pay now with Stripe (instant confirmation)</span>
+      <span class="ls">💳 Option 1 - Pay now with Stripe (instant confirmation)</span>
       <div class="scg">
         <div class="scc"><div class="scl">EARLY BIRD</div><div class="scp">$299</div><div class="scn">Before May 31, 2026</div><a href="https://buy.stripe.com/5kQdR9dsQcW21zu5Vs0oM00" target="_blank" class="sca">Pay Now</a></div>
         <div class="scc best"><div class="scl">STANDARD</div><div class="scp">$350</div><div class="scn">Full program access</div><a href="https://buy.stripe.com/8x23cv88w4pwba4cjQ0oM02" target="_blank" class="sca">Pay Now</a></div>
         <div class="scc"><div class="scl">SIBLING RATE</div><div class="scp">$299</div><div class="scn">Second child discount</div><a href="https://buy.stripe.com/bJecN5dsQ7BIemg97E0oM01" target="_blank" class="sca">Pay Now</a></div>
       </div>
-      <div class="snt">&#10003; Instant confirmation &nbsp;&bull;&nbsp; &#10003; Secure SSL &nbsp;&bull;&nbsp; &#10003; Spot reserved immediately</div>
+      <div class="snt">✓ Instant confirmation  •  ✓ Secure SSL  •  ✓ Spot reserved immediately</div>
       <div class="dv"></div>
-      <span class="ls">&#128203; Option 2 - Register now, pay later</span>
-      <iframe data-tally-src="https://tally.so/embed/YOUR_TALLY_FORM_ID?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1" loading="lazy" width="100%" height="500" frameborder="0" marginheight="0" marginwidth="0" title="Boot Camp Registration" style="border-radius:6px;border:1px solid rgba(201,168,76,.2);display:block;"></iframe>
+      <span class="ls">📋 Option 2 - Register now, pay later</span>
+      <iframe data-tally-src="https://tally.so/embed/zxqZKZ?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1" loading="lazy" width="100%" height="500" frameborder="0" marginheight="0" marginwidth="0" title="Boot Camp Registration" style="border-radius:6px;border:1px solid rgba(201,168,76,.2);display:block;"></iframe>
       <div style="text-align:center;margin-top:12px;font-size:.72rem;color:rgba(255,255,255,.45);">Submit form - we email your payment link within 24 hrs</div>
       <div class="cb">
         <div class="cbt">Questions before registering?</div>
@@ -374,25 +374,25 @@ footer{background:var(--ink);padding:56px 80px 32px;border-top:1px solid rgba(20
   <div class="se">Frequently Asked Questions</div>
   <h2 class="st rv">Everything you need <em>to know.</em></h2>
   <div class="fg">
-    <div class="fi rv"><div class="fq" onclick="faq(this)">Does my child need to know how to play chess? <span>&#9660;</span></div><div class="fa">Not at all! We welcome complete beginners. On Day 1 each child is assessed and placed in a skill-appropriate group. Our beginner sessions start from the very basics - how pieces move, board setup, and simple tactics.</div></div>
-    <div class="fi rv"><div class="fq" onclick="faq(this)">What should my child bring each day? <span>&#9660;</span></div><div class="fa">A packed lunch and water bottle. Comfortable clothing. A positive attitude! All chess equipment, worksheets, and materials are provided. No need to bring your own chess set.</div></div>
-    <div class="fi rv"><div class="fq" onclick="faq(this)">What is the supervision ratio? <span>&#9660;</span></div><div class="fa">We maintain a maximum of 1 adult per 10 children. Our team of 7 includes a Lead Instructor, 4 Assistant Instructors, a Camp Coordinator, and a Safety Floater. First aid is always on site.</div></div>
-    <div class="fi rv"><div class="fq" onclick="faq(this)">What is the cancellation and refund policy? <span>&#9660;</span></div><div class="fa">Full refund for cancellations before June 30, 2026. A 50% refund is available between July 1-7. No refund after July 7 as materials and staffing will have been committed.</div></div>
-    <div class="fi rv"><div class="fq" onclick="faq(this)">What are the drop-off and pick-up rules? <span>&#9660;</span></div><div class="fa">Drop-off begins at 8:45 AM. Pick-up is between 3:00-3:15 PM. A valid ID is required for anyone other than the registered guardian. Late pickups after 3:30 PM incur a $10 fee per 15-minute interval.</div></div>
-    <div class="fi rv"><div class="fq" onclick="faq(this)">Will there be an afterschool club? <span>&#9660;</span></div><div class="fa">Yes! We plan to launch a weekly afterschool chess club starting September 2026. Boot camp participants get first access and priority enrollment. Subscribe to our newsletter to be notified first.</div></div>
-    <div class="fi rv"><div class="fq" onclick="faq(this)">How do I pay after submitting the inquiry form? <span>&#9660;</span></div><div class="fa">After submitting the inquiry form you'll receive an email within 24 hours with a secure payment link. Your spot is held for 48 hours. Alternatively, pay immediately using the Stripe buttons above.</div></div>
-    <div class="fi rv"><div class="fq" onclick="faq(this)">Is the camp inclusive for kids with learning differences? <span>&#9660;</span></div><div class="fa">Absolutely. We take a patient, inclusive approach. Please include any relevant information in the registration form and our team will be in touch to discuss accommodations before camp begins.</div></div>
+    <div class="fi rv"><div class="fq" onclick="fq(this)">Does my child need to know how to play chess? <span>▾</span></div><div class="fa">Not at all! We welcome complete beginners. On Day 1 each child is assessed and placed in a skill-appropriate group. Our beginner sessions start from the very basics - how pieces move, board setup, and simple tactics.</div></div>
+    <div class="fi rv"><div class="fq" onclick="fq(this)">What should my child bring each day? <span>▾</span></div><div class="fa">A packed lunch and water bottle. Comfortable clothing. A positive attitude! All chess equipment, worksheets, and materials are provided. No need to bring your own chess set.</div></div>
+    <div class="fi rv"><div class="fq" onclick="fq(this)">What is the supervision ratio? <span>▾</span></div><div class="fa">We maintain a maximum of 1 adult per 10 children. Our team of 7 includes a Lead Instructor, 4 Assistant Instructors, a Camp Coordinator, and a Safety Floater. First aid is always on site.</div></div>
+    <div class="fi rv"><div class="fq" onclick="fq(this)">What is the cancellation and refund policy? <span>▾</span></div><div class="fa">Full refund for cancellations before June 30, 2026. A 50% refund is available between July 1-7. No refund after July 7 as materials and staffing will have been committed.</div></div>
+    <div class="fi rv"><div class="fq" onclick="fq(this)">What are the drop-off and pick-up rules? <span>▾</span></div><div class="fa">Drop-off begins at 8:45 AM. Pick-up is between 3:00-3:15 PM. A valid ID is required for anyone other than the registered guardian. Late pickups after 3:30 PM incur a $10 fee per 15-minute interval.</div></div>
+    <div class="fi rv"><div class="fq" onclick="fq(this)">Will there be an afterschool club? <span>▾</span></div><div class="fa">Yes! We plan to launch a weekly afterschool chess club starting September 2026. Boot camp participants get first access and priority enrollment. Subscribe to our newsletter to be notified first.</div></div>
+    <div class="fi rv"><div class="fq" onclick="fq(this)">How do I pay after submitting the inquiry form? <span>▾</span></div><div class="fa">After submitting the inquiry form you'll receive an email within 24 hours with a secure payment link. Your spot is held for 48 hours. Alternatively, pay immediately using the Stripe buttons above.</div></div>
+    <div class="fi rv"><div class="fq" onclick="fq(this)">Is the camp inclusive for kids with learning differences? <span>▾</span></div><div class="fa">Absolutely. We take a patient, inclusive approach. Please include any relevant information in the registration form and our team will be in touch to discuss accommodations before camp begins.</div></div>
   </div>
 </section>
 
 <div class="nl2">
-  <h3>Stay in the loop &#9823;</h3>
+  <h3>Stay in the loop ♟</h3>
   <p>Be the first to hear about the afterschool club, tournaments, and future camps.</p>
-  <form class="nf" onsubmit="subNL(event)">
-    <input class="ni" id="nlE" type="email" placeholder="your@email.com" required>
+  <form class="nf" onsubmit="nl(event)">
+    <input class="ni" id="ne" type="email" placeholder="your@email.com" required>
     <button class="nb" type="submit">Subscribe</button>
   </form>
-  <div class="nn" id="nlM">No spam. Just chess. Unsubscribe anytime.</div>
+  <div class="nn" id="nm">No spam. Just chess. Unsubscribe anytime.</div>
 </div>
 
 <div class="ct">
@@ -401,16 +401,16 @@ footer{background:var(--ink);padding:56px 80px 32px;border-top:1px solid rgba(20
     <p>We're happy to help. Reach out any time.</p>
   </div>
   <div class="cl">
-    <a class="clk" href="mailto:support@younghorizonchess.ca">&#9993; support@younghorizonchess.ca</a>
-    <a class="clk" href="tel:4372163282">&#128222; 437-216-3282</a>
+    <a class="clk" href="mailto:support@younghorizonchess.ca">✉ support@younghorizonchess.ca</a>
+    <a class="clk" href="tel:4372163282">📞 437-216-3282</a>
   </div>
 </div>
 
 <footer>
   <div class="ft">
     <div>
-      <div class="fn">&#9823; Young Horizon Chess</div>
-      <div class="ftg">Developing the next generation of strategic thinkers - one move at a time.<br>Edgemont &middot; Edmonton, Alberta.<br><a href="https://younghorizonchess.ca" style="color:rgba(201,168,76,.5);">younghorizonchess.ca</a></div>
+      <div class="fn">♟ Young Horizon Chess</div>
+      <div class="ftg">Developing the next generation of strategic thinkers - one move at a time.<br>Edgemont · Edmonton, Alberta.<br><a href="https://younghorizonchess.ca" style="color:rgba(201,168,76,.5);">younghorizonchess.ca</a></div>
     </div>
     <div>
       <div class="fh">Quick Links</div>
@@ -432,28 +432,24 @@ footer{background:var(--ink);padding:56px 80px 32px;border-top:1px solid rgba(20
     </div>
   </div>
   <div class="fb">
-    <span>&copy; 2026 Young Horizon Chess. All rights reserved.</span>
+    <span>© 2026 Young Horizon Chess. All rights reserved.</span>
     <span>younghorizonchess.ca</span>
   </div>
 </footer>
 
 <script>
 (function(){
-var b=document.getElementById('board');
+var b=document.getElementById('bd');
 if(!b)return;
-var p={'0,0':'♜','0,2':'♛','0,4':'♚','0,5':'♝','0,7':'♜',
-  '1,0':'♟','1,1':'♟','1,2':'♟','1,4':'♟','1,6':'♟','1,7':'♟',
-  '6,0':'♙','6,1':'♙','6,3':'♙','6,4':'♙','6,5':'♙','6,7':'♙',
-  '7,0':'♖','7,2':'♗','7,3':'♕','7,4':'♔','7,7':'♖'};
+var p={'0,0':'♜','0,2':'♛','0,4':'♚','0,5':'♝','0,7':'♜','1,0':'♟','1,1':'♟','1,2':'♟','1,4':'♟','1,6':'♟','1,7':'♟','6,0':'♙','6,1':'♙','6,3':'♙','6,4':'♙','6,5':'♙','6,7':'♙','7,0':'♖','7,2':'♗','7,3':'♕','7,4':'♔','7,7':'♖'};
 for(var r=0;r<8;r++){for(var c=0;c<8;c++){
-  var s=document.createElement('div');
-  s.className='sq '+((r+c)%2===0?'l':'d');
-  var k=r+','+c;
-  if(p[k]){s.innerHTML=p[k];s.style.color=r<2?'rgba(26,18,16,.65)':'rgba(245,240,232,.88)';}
-  b.appendChild(s);
+var s=document.createElement('div');
+s.className='sq '+((r+c)%2===0?'l':'d');
+var k=r+','+c;
+if(p[k]){s.innerHTML=p[k];s.style.color=r<2?'rgba(26,18,16,.65)':'rgba(245,240,232,.88)';}
+b.appendChild(s);
 }}
 })();
-
 (function(){
 var w='https://tally.so/widgets/embed.js';
 function v(){
@@ -465,7 +461,6 @@ else if(!document.querySelector('script[src="'+w+'"]')){
 var s=document.createElement('script');s.src=w;s.onload=v;s.onerror=v;document.body.appendChild(s);
 }
 })();
-
 var ro=new IntersectionObserver(function(es){
 es.forEach(function(e,i){
 if(e.isIntersecting){
@@ -475,31 +470,26 @@ ro.unobserve(e.target);
 });
 },{threshold:0.08,rootMargin:'0px 0px -36px 0px'});
 document.querySelectorAll('.rv').forEach(function(el){ro.observe(el);});
-
-function openMenu(){document.getElementById('mob').classList.add('open');}
-function closeMenu(){document.getElementById('mob').classList.remove('open');}
+function tg(){document.getElementById('mb').classList.toggle('open');}
 document.addEventListener('click',function(e){
-if(!e.target.closest('nav')&&!e.target.closest('#mob'))closeMenu();
+if(!e.target.closest('nav')&&!e.target.closest('#mb'))document.getElementById('mb').classList.remove('open');
 });
-
-function faq(el){
+function fq(el){
 var it=el.closest('.fi'),op=it.classList.contains('open');
 document.querySelectorAll('.fi.open').forEach(function(i){i.classList.remove('open');});
 if(!op)it.classList.add('open');
 }
-
-function subNL(e){
+function nl(e){
 e.preventDefault();
-var btn=e.target.querySelector('button'),msg=document.getElementById('nlM');
+var btn=e.target.querySelector('button'),msg=document.getElementById('nm');
 btn.textContent='...';
 setTimeout(function(){
 msg.textContent='Subscribed! We will notify you when the afterschool club opens.';
 msg.style.color='var(--gold-d)';
-document.getElementById('nlE').value='';
+document.getElementById('ne').value='';
 btn.textContent='Done';btn.style.background='var(--gold-d)';
 },800);
 }
-
 window.addEventListener('scroll',function(){
 document.getElementById('mn').style.height=window.scrollY>55?'56px':'68px';
 });
