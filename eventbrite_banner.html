@@ -309,7 +309,7 @@
         <span class="pill-icon">📍</span>
         <span>
           <span class="pill-label">Location</span>
-          <span class="pill-value">Edgemont, Edmonton NW</span>
+          <span class="pill-value">Champions Community Centre</span>
         </span>
       </div>
       <div class="pill">
@@ -321,9 +321,9 @@
       </div>
     </div>
     <div class="cta-row">
-      <div class="cta-btn">Register on Eventbrite</div>
+      <div style="display:flex;flex-direction:column;gap:6px;"><div class="cta-btn">Register Now</div><div style="font-size:14px;color:rgba(201,168,76,.8);letter-spacing:1px;">younghorizonchess.ca</div></div>
       <div class="cta-contact">
-        <strong>support@younghorizonchess.com</strong><br>
+        <strong><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="43303633332c3137033a2c362d242b2c312a392c2d202b2630306d2022">[email&#160;protected]</a></strong><br>
         437-216-3282
       </div>
     </div>
@@ -339,8 +339,8 @@
     <div class="board-wrap">
       <div class="chess-board" id="board"></div>
       <div class="stat-float sf-1">
-        <div class="num">70</div>
-        <div class="lbl">Spots Only</div>
+        <div class="num">Ltd</div>
+        <div class="lbl">Limited Seats</div>
       </div>
       <div class="stat-float sf-2">
         <div class="num">10</div>
@@ -359,7 +359,7 @@
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // Render chess board with a mid-game position
 const pieces = {
   '0,0':'♜','0,3':'♛','0,4':'♚','0,7':'♜',
@@ -367,26 +367,4 @@ const pieces = {
   '2,1':'♞','2,3':'♟','2,4':'♝',
   '3,2':'♙','3,5':'♞',
   '4,3':'♙','4,4':'♙',
-  '5,2':'♗','5,5':'♘',
-  '6,0':'♙','6,1':'♙','6,5':'♙','6,6':'♙','6,7':'♙',
-  '7,0':'♖','7,3':'♕','7,4':'♔','7,7':'♖',
-};
-const darkPieces = ['♜','♛','♚','♟','♞','♝'];
-const board = document.getElementById('board');
-for (let r=0;r<8;r++) {
-  for (let c=0;c<8;c++) {
-    const sq = document.createElement('div');
-    sq.className = 'sq ' + ((r+c)%2===0?'l':'d');
-    const key = r+','+c;
-    if (pieces[key]) {
-      const p = document.createElement('span');
-      p.className = 'piece-svg ' + (darkPieces.includes(pieces[key]) ? 'piece-dark' : 'piece-light');
-      p.textContent = pieces[key];
-      sq.appendChild(p);
-    }
-    board.appendChild(sq);
-  }
-}
-</script>
-</body>
-</html>
+ 
