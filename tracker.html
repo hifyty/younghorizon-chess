@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Young Horizon Chess — Camp Tracker</title>
+
+<!-- Firebase 10 (modular, loaded as type=module) -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs,
+  deleteDoc, onSnapshot, serverTimestamp, query, orderBy }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+// These values are read from localStorage so the HTML file stays generic.
+// Fill them in via the Settings tab or the first-run Setup wizard.
+const FB = {
+  apiKey:            localStorage.getItem("yhc_apiKey")            || "",
+  authDomain:        localStorage.getItem("yhc_authDomain")        || "",
+  projectId:         localStorage.getItem("yhc_projectId")         || "",
+  storageBucket:     localStorage.getItem("yhc_storageBucket")     || "",
+  messagingSenderId: localStorage.getItem("yhc_messagingSenderId") || "",
+  appId:             localStorage.getItem("yhc_appId")             || "",
+};
+const EJS_SVC  = localStorage.getItem("yhc_ejs_service")  || "";
+const EJS_TPL  = localStorage.getItem("yhc_ejs_template") || "";
+const EJS_KEY  = localStorage.getItem("yhc_ejs_pubkey")   || "";
+const configOK = !!(FB.apiKey && FB.projectId);
+
+let app, auth, db;
+if (configOK) {
+  app  = initializeApp(FB);
+  auth = getAuth(app);
+  db   = getFirestore(app);
+}
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let students = {};   // { id: { name, age, group, email, phone, emergName, emergPhone, pickup, notes } }
+let checkins = {};   // { studentId: { timeIn, timeOut, date } }
+let dailyLog  = [];
+let currentUser = null;
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+window.doLogin = async () => {
+  const email = document.getElementById("loginEmail").value.trim();
+  const pass  = document.getElementById("loginPass").value;
+  const errEl = document.getElementById("loginErr");
+  errEl.textContent = "";
+  try { await signInWithEmailAndPassword(auth, email, pass); }
+  catch(e) { errEl.textContent = "Login failed: " + e.message; }
+};
+window.doLogout = async () => { await signOut(auth); };
+
+if (configOK) {
+  onAuthStateChanged(auth, user => {
+    currentUser = user;
+    document.getElementById("loginScreen").style.display  = user ? "none" : "flex";
+    document.getElementById("appShell").style.display     = user ? "flex" : "none";
+    document.getElementById("setupScreen").style.display  = "none";
+    if (user) {
+      document.getElementById("adminEmail").textContent = user.email;
+      loadAllData();
+    }
+  });
+} else {
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("appShell").style.display    = "none";
+  document.getElementById("setupScreen").style.display = "flex";
+}
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+async function loadAllData() {
+  const snap = await getDocs(collection(db, "students"));
+  students = {};
+  snap.forEach(d => { students[d.id] = d.data(); });
+
+  const today = todayStr();
+  const ciSnap = await getDocs(collection(db, "checkins_" + today));
+  checkins = {};
+  ciSnap.forEach(d => { checkins[d.id] = d.data(); });
+
+  const logSnap = await getDocs(query(collection(db, "log"), orderBy("ts", "desc")));
+  dailyLog = [];
+  logSnap.forEach(d => dailyLog.push({ id: d.id, ...d.data() }));
+
+  renderAll();
+}
+
+function todayStr() { return new Date().toISOString().slice(0,10); }
+
+async function saveStudent(id, data) {
+  await setDoc(doc(db, "students", id), data, { merge: true });
+  students[id] = { ...(students[id] || {}), ...data };
+}
+async function deleteStudent(id) {
+  await deleteDoc(doc(db, "students", id));
+  delete students[id];
+}
+async function saveCheckin(studentId, data) {
+  await setDoc(doc(db, "checkins_" + todayStr(), studentId), data, { merge: true });
+  checkins[studentId] = { ...(checkins[studentId] || {}), ...data };
+}
+async function addLog(msg) {
+  const ref = doc(collection(db, "log"));
+  await setDoc(ref, { msg, ts: serverTimestamp(), user: currentUser?.email || "admin" });
+  dailyLog.unshift({ id: ref.id, msg, ts: new Date().toISOString(), user: currentUser?.email });
+  renderLog();
+}
+
+// ── RENDER COORDINATOR ───────────────────────────────────────────────────────
+function renderAll() {
+  renderCheckin();
+  renderAttendance();
+  renderRoster();
+  renderLog();
+  renderComms();
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+window.showTab = (tab) => {
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  document.getElementById("tab-" + tab).classList.add("active");
+  document.getElementById("panel-" + tab).classList.add("active");
+  if (tab === "qr")        renderQR();
+  if (tab === "certs")     renderCerts();
+  if (tab === "emergency") renderEmergency();
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHECK-IN TAB
+// ─────────────────────────────────────────────────────────────────────────────
+window.checkInStudent = async (id) => {
+  const now = new Date().toLocaleTimeString("en-CA",{hour:"2-digit",minute:"2-digit"});
+  await saveCheckin(id, { timeIn: now, date: todayStr() });
+  await addLog("✅ " + students[id]?.name + " checked in at " + now);
+  renderCheckin(); renderAttendance();
+};
+window.checkOutStudent = async (id) => {
+  const now = new Date().toLocaleTimeString("en-CA",{hour:"2-digit",minute:"2-digit"});
+  await saveCheckin(id, { timeOut: now });
+  await addLog("🚪 " + students[id]?.name + " checked out at " + now);
+  renderCheckin(); renderAttendance();
+};
+
+function renderCheckin() {
+  const search = (document.getElementById("ciSearch")?.value || "").toLowerCase();
+  const list   = document.getElementById("ciList");
+  if (!list) return;
+  const ids = Object.keys(students).filter(id =>
+    students[id].name?.toLowerCase().includes(search) ||
+    students[id].group?.toLowerCase().includes(search));
+  if (!ids.length) { list.innerHTML = '<p class="muted">No students. Add one via the Roster tab.</p>'; return; }
+  const groups = {};
+  ids.forEach(id => {
+    const g = students[id].group || "Ungrouped";
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(id);
+  });
+  list.innerHTML = Object.keys(groups).sort().map(g => `
+    <div class="group-header">${g}</div>
+    <div class="ci-grid">
+    ${groups[g].map(id => {
+      const s = students[id], ci = checkins[id];
+      const inT = ci?.timeIn, outT = ci?.timeOut;
+      const st  = inT && outT ? "out" : inT ? "in" : "absent";
+      return `<div class="ci-card status-${st}">
+        <div class="ci-name">${s.name}</div>
+        <div class="ci-meta">Age ${s.age||"—"} · ${s.group||"—"}</div>
+        <div class="ci-times">
+          ${inT  ? `<span class="badge-in">IN ${inT}</span>` : ""}
+          ${outT ? `<span class="badge-out">OUT ${outT}</span>` : ""}
+        </div>
+        <div class="ci-actions">
+          ${!inT  ? `<button class="btn-checkin" onclick="checkInStudent('${id}')">Check In</button>` : ""}
+          ${inT && !outT ? `<button class="btn-checkout" onclick="checkOutStudent('${id}')">Check Out</button>` : ""}
+          ${outT ? `<span class="done-label">✓ Complete</span>` : ""}
+        </div>
+      </div>`;
+    }).join("")}
+    </div>`).join("");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ATTENDANCE TAB
+// ─────────────────────────────────────────────────────────────────────────────
+function renderAttendance() {
+  const el = document.getElementById("attendanceSummary");
+  if (!el) return;
+  const total   = Object.keys(students).length;
+  const present = Object.keys(checkins).filter(id => checkins[id]?.timeIn).length;
+  const out     = Object.keys(checkins).filter(id => checkins[id]?.timeOut).length;
+  el.innerHTML = `
+    <div class="stat-row">
+      <div class="stat-box"><span class="stat-num">${total}</span><span class="stat-lbl">Enrolled</span></div>
+      <div class="stat-box green"><span class="stat-num">${present}</span><span class="stat-lbl">Checked In</span></div>
+      <div class="stat-box gold"><span class="stat-num">${total-present}</span><span class="stat-lbl">Not Yet In</span></div>
+      <div class="stat-box navy"><span class="stat-num">${out}</span><span class="stat-lbl">Checked Out</span></div>
+    </div>
+    <div style="overflow-x:auto"><table class="data-table">
+      <thead><tr><th>Name</th><th>Group</th><th>Check-In</th><th>Check-Out</th><th>Status</th></tr></thead>
+      <tbody>${Object.keys(students).map(id => {
+        const s=students[id], ci=checkins[id];
+        const st = ci?.timeOut?"Checked Out":ci?.timeIn?"Present":"Absent";
+        const cls= ci?.timeOut?"status-out":ci?.timeIn?"status-in":"status-absent";
+        return `<tr><td><strong>${s.name}</strong></td><td>${s.group||"—"}</td>
+          <td>${ci?.timeIn||"—"}</td><td>${ci?.timeOut||"—"}</td>
+          <td><span class="chip ${cls}">${st}</span></td></tr>`;
+      }).join("")}</tbody>
+    </table></div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROSTER TAB
+// ─────────────────────────────────────────────────────────────────────────────
+window.openAddStudent = () => {
+  document.getElementById("studentModal").style.display = "flex";
+  document.getElementById("stuForm").reset();
+  document.getElementById("stuId").value = "";
+};
+window.closeStudentModal = () => {
+  document.getElementById("studentModal").style.display = "none";
+};
+window.editStudent = (id) => {
+  const s = students[id];
+  ["name","age","group","email","phone","emergName","emergPhone","pickup","notes"].forEach(k => {
+    const el = document.getElementById("stu_" + k);
+    if (el) el.value = s[k] || "";
+  });
+  document.getElementById("stuId").value = id;
+  document.getElementById("studentModal").style.display = "flex";
+};
+window.saveStudentForm = async () => {
+  const id = document.getElementById("stuId").value || ("s_" + Date.now());
+  const data = {};
+  ["name","age","group","email","phone","emergName","emergPhone","pickup","notes"].forEach(k => {
+    data[k] = document.getElementById("stu_" + k)?.value?.trim() || "";
+  });
+  if (!data.name) { alert("Name is required."); return; }
+  await saveStudent(id, data);
+  closeStudentModal();
+  renderAll();
+};
+window.removeStudent = async (id) => {
+  if (!confirm("Remove " + students[id]?.name + "?")) return;
+  await deleteStudent(id);
+  renderRoster(); renderCheckin(); renderAttendance();
+};
+
+function renderRoster() {
+  const tbody = document.getElementById("rosterBody");
+  if (!tbody) return;
+  const ids = Object.keys(students);
+  if (!ids.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="muted">No students yet. Click + Add Student.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = ids.map(id => {
+    const s = students[id];
+    return `<tr>
+      <td><strong>${s.name}</strong></td><td>${s.age||"—"}</td><td>${s.group||"—"}</td>
+      <td>${s.email||"—"}</td><td>${s.phone||"—"}</td>
+      <td>${s.emergName||"—"} ${s.emergPhone ? "· "+s.emergPhone : ""}</td>
+      <td style="white-space:nowrap">
+        <button class="btn-sm" onclick="editStudent('${id}')">Edit</button>
+        <button class="btn-sm danger" onclick="removeStudent('${id}')">Remove</button>
+        <button class="btn-sm" onclick="showQRFor('${id}')">QR</button>
+      </td></tr>`;
+  }).join("");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// QR TAB
+// ─────────────────────────────────────────────────────────────────────────────
+window.showQRFor = (id) => {
+  showTab("qr");
+  document.getElementById("qrSearch").value = students[id]?.name || "";
+  renderQR();
+};
+
+function renderQR() {
+  const search = (document.getElementById("qrSearch")?.value || "").toLowerCase();
+  const container = document.getElementById("qrContainer");
+  if (!container) return;
+  const ids = search
+    ? Object.keys(students).filter(id => students[id].name?.toLowerCase().includes(search))
+    : Object.keys(students);
+  container.innerHTML = ids.map(id => {
+    const s=students[id], ci=checkins[id];
+    const st = ci?.timeIn ? (ci?.timeOut ? "Checked Out" : "Present") : "Absent";
+    const cls= ci?.timeIn ? (ci?.timeOut ? "status-out" : "status-in") : "status-absent";
+    return `<div class="qr-card">
+      <div class="qr-name">${s.name}</div>
+      <div class="qr-meta">${s.group||""}</div>
+      <div id="qr_${id}" style="margin:.5rem auto;width:fit-content"></div>
+      <div class="qr-status chip ${cls}">${st}</div>
+      <div class="qr-actions">
+        ${!ci?.timeIn ? `<button class="btn-checkin" onclick="checkInStudent('${id}')">In</button>` : ""}
+        ${ci?.timeIn && !ci?.timeOut ? `<button class="btn-checkout" onclick="checkOutStudent('${id}')">Out</button>` : ""}
+      </div>
+    </div>`;
+  }).join("");
+  ids.forEach(id => {
+    const el = document.getElementById("qr_" + id);
+    if (el && window.QRCode) {
+      el.innerHTML = "";
+      try { new QRCode(el, { text:"yhc:"+id, width:110, height:110, colorDark:"#1a2744", colorLight:"#fff" }); }
+      catch(e) {}
+    }
+  });
+}
+
+let scanning = false, videoStream = null;
+window.toggleScan = async () => {
+  const btn=document.getElementById("scanBtn"), video=document.getElementById("scanVideo"), canvas=document.getElementById("scanCanvas");
+  if (scanning) {
+    scanning=false; videoStream?.getTracks().forEach(t=>t.stop());
+    video.style.display="none"; btn.textContent="📷 Scan QR to Check In"; return;
+  }
+  scanning=true; btn.textContent="⏹ Stop Scanning";
+  try {
+    videoStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+    video.srcObject=videoStream; video.style.display="block"; video.play();
+    scanLoop(video,canvas);
+  } catch(e) { scanning=false; alert("Camera error: "+e.message); btn.textContent="📷 Scan QR to Check In"; }
+};
+
+async function scanLoop(video, canvas) {
+  if (!scanning) return;
+  const ctx=canvas.getContext("2d"); canvas.width=video.videoWidth; canvas.height=video.videoHeight;
+  ctx.drawImage(video,0,0);
+  if (canvas.width>0 && window.jsQR) {
+    const img=ctx.getImageData(0,0,canvas.width,canvas.height);
+    const code=jsQR(img.data,img.width,img.height);
+    if (code && code.data.startsWith("yhc:")) {
+      const id=code.data.replace("yhc:","");
+      if (students[id]) {
+        scanning=false; videoStream?.getTracks().forEach(t=>t.stop());
+        document.getElementById("scanVideo").style.display="none";
+        document.getElementById("scanBtn").textContent="📷 Scan QR to Check In";
+        if (!checkins[id]?.timeIn)      { await checkInStudent(id);  alert("✅ "+students[id].name+" checked in!"); }
+        else if (!checkins[id]?.timeOut){ await checkOutStudent(id); alert("🚪 "+students[id].name+" checked out!"); }
+        else { alert(students[id].name+" is already fully checked out today."); }
+        renderQR(); return;
+      }
+    }
+  }
+  requestAnimationFrame(()=>scanLoop(video,canvas));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EMERGENCY TAB
+// ─────────────────────────────────────────────────────────────────────────────
+window.renderEmergency = () => {
+  const el = document.getElementById("emergList");
+  if (!el) return;
+  el.innerHTML = `<div style="overflow-x:auto"><table class="data-table">
+    <thead><tr><th>Name</th><th>Age</th><th>Group</th><th>Emergency Contact</th><th>Phone</th><th>Authorized Pickup</th><th>Notes</th></tr></thead>
+    <tbody>${Object.keys(students).map(id => {
+      const s=students[id];
+      return `<tr><td><strong>${s.name}</strong></td><td>${s.age||"—"}</td><td>${s.group||"—"}</td>
+        <td>${s.emergName||"—"}</td><td>${s.emergPhone||"—"}</td><td>${s.pickup||"—"}</td><td>${s.notes||"—"}</td></tr>`;
+    }).join("")}</tbody>
+  </table></div>`;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LOG TAB
+// ─────────────────────────────────────────────────────────────────────────────
+window.addManualLog = async () => {
+  const msg=document.getElementById("logInput").value.trim();
+  if (!msg) return;
+  await addLog(msg);
+  document.getElementById("logInput").value="";
+};
+function renderLog() {
+  const el=document.getElementById("logList");
+  if (!el) return;
+  if (!dailyLog.length) { el.innerHTML='<p class="muted">No log entries yet.</p>'; return; }
+  el.innerHTML = dailyLog.map(e=>{
+    const t = e.ts ? (e.ts.seconds ? new Date(e.ts.seconds*1000) : new Date(e.ts)).toLocaleTimeString() : "—";
+    return `<div class="log-entry"><span class="log-time">${t}</span><span class="log-msg">${e.msg}</span><span class="log-user">${e.user||""}</span></div>`;
+  }).join("");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMMS TAB
+// ─────────────────────────────────────────────────────────────────────────────
+const TEMPLATES = {
+  welcome:    { sub:"Welcome to Young Horizon Chess Boot Camp!", body:`Hi {parentName},\n\nWelcome! We're excited to have {name} joining us for the Young Horizon Chess Summer Boot Camp (July 13–24, 2026).\n\nCamp runs 8:45 AM – 2:45 PM daily at River West Christian Church, Edmonton.\n\nPlease ensure your child brings:\n• A water bottle\n• Nut-free snack\n• Chess notation notebook (provided on Day 1)\n\nSee you July 13!\n\nYoung Horizon Chess Team\nyounghorizonchess.ca` },
+  reminder:   { sub:"Reminder: Camp Tomorrow — Young Horizon Chess", body:`Hi {parentName},\n\nJust a reminder that camp runs tomorrow (8:45 AM – 2:45 PM) at River West Christian Church.\n\n{name} is in the {group} group.\n\nSee you there!\n\nYoung Horizon Chess Team` },
+  pickup:     { sub:"Pick-Up Reminder — Young Horizon Chess", body:`Hi {parentName},\n\nThis is a reminder that pick-up for {name} is at 2:45 PM today.\n\nAuthorized pickup: {pickup}\n\nThank you!\n\nYoung Horizon Chess Team` },
+  achievement:{ sub:"🏆 {name} Earned a Badge — Young Horizon Chess", body:`Hi {parentName},\n\nGreat news! {name} earned a new achievement badge today at Young Horizon Chess Boot Camp.\n\nWe're so proud of the progress they're making!\n\nYoung Horizon Chess Team\nyounghorizonchess.ca` },
+  custom:     { sub:"", body:"" },
+};
+function renderComms() {
+  const sel=document.getElementById("commRecipient");
+  if (!sel) return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="all">📢 All Parents</option>'+
+    Object.keys(students).filter(id=>students[id].email).map(id=>
+      `<option value="${id}">${students[id].name} (${students[id].email})</option>`
+    ).join("");
+  if (cur) sel.value=cur;
+}
+window.loadTemplate = () => {
+  const t=TEMPLATES[document.getElementById("commTemplate").value];
+  if (!t) return;
+  document.getElementById("commSubject").value=t.sub;
+  document.getElementById("commBody").value=t.body;
+};
+window.sendEmails = async () => {
+  if (!EJS_SVC||!EJS_TPL||!EJS_KEY) { alert("EmailJS is not configured. Go to Settings tab."); return; }
+  const recipient=document.getElementById("commRecipient").value;
+  const subject=document.getElementById("commSubject").value.trim();
+  const body=document.getElementById("commBody").value.trim();
+  if (!subject||!body) { alert("Subject and message are required."); return; }
+  const targets=recipient==="all" ? Object.keys(students).filter(id=>students[id].email) : [recipient];
+  if (!targets.length) { alert("No email addresses on file."); return; }
+  if (!confirm("Send to "+targets.length+" recipient(s)?")) return;
+  const statusEl=document.getElementById("commStatus");
+  statusEl.textContent="Sending…";
+  let sent=0, failed=0;
+  for (const id of targets) {
+    const s=students[id];
+    const fill = t => t.replace(/{name}/g,s.name).replace(/{parentName}/g,s.pickup||"Parent/Guardian")
+                       .replace(/{group}/g,s.group||"").replace(/{pickup}/g,s.pickup||"");
+    try {
+      await emailjs.send(EJS_SVC,EJS_TPL,{to_email:s.email,to_name:s.name,subject:fill(subject),message:fill(body)},EJS_KEY);
+      sent++;
+    } catch(e) { console.error(e); failed++; }
+  }
+  statusEl.textContent="✅ Sent: "+sent+(failed?" ❌ Failed: "+failed:"");
+  await addLog("📧 Email sent to "+sent+" parent(s): \""+subject+"\"");
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CERTS TAB
+// ─────────────────────────────────────────────────────────────────────────────
+const CERT_TITLES = {
+  completion:"Certificate of Completion", champion:"Camp Champion Award",
+  puzzle:"Puzzle Master Award", improved:"Most Improved Player", sport:"Sportsmanship Award"
+};
+const CERT_MSGS = {
+  completion:"has successfully completed the Young Horizon Chess Summer Boot Camp\n(July 13–24, 2026) and demonstrated a dedication to chess excellence.",
+  champion:"has demonstrated outstanding chess skill and was named\nCamp Champion of the Young Horizon Chess Summer Boot Camp 2026.",
+  puzzle:"demonstrated exceptional puzzle-solving ability and earned the\nPuzzle Master title at Young Horizon Chess Boot Camp 2026.",
+  improved:"showed remarkable growth and determination throughout\nthe Young Horizon Chess Summer Boot Camp 2026.",
+  sport:"exemplified outstanding sportsmanship, encouraging fellow campers\nthroughout the Young Horizon Chess Summer Boot Camp 2026."
+};
+window.generateCert = (studentId) => {
+  const type = document.getElementById("certType")?.value || "completion";
+  const s = students[studentId];
+  if (!s) return;
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF({orientation:"landscape",unit:"pt",format:"letter"});
+  const W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight();
+  // Background
+  doc.setFillColor("#fdf6e3"); doc.rect(0,0,W,H,"F");
+  // Outer border
+  doc.setDrawColor("#1a2744"); doc.setLineWidth(8); doc.rect(10,10,W-20,H-20);
+  doc.setDrawColor("#c9a84c"); doc.setLineWidth(3); doc.rect(18,18,W-36,H-36);
+  // Header bar
+  doc.setFillColor("#1a2744"); doc.rect(0,0,W,78,"F");
+  doc.setFillColor("#c9a84c"); doc.rect(0,78,W,10,"F");
+  doc.setTextColor("#c9a84c"); doc.setFontSize(20); doc.setFont("helvetica","bold");
+  doc.text("♟  YOUNG HORIZON CHESS", 40,50);
+  doc.setTextColor(255,255,255); doc.setFontSize(13);
+  doc.text("Summer Boot Camp 2026  ·  July 13–24  ·  Edmonton, AB", W/2, 68, {align:"center"});
+  // Title
+  doc.setTextColor("#1a2744"); doc.setFontSize(26); doc.setFont("helvetica","bold");
+  doc.text(CERT_TITLES[type]||"Certificate", W/2, 138, {align:"center"});
+  // Preamble
+  doc.setFontSize(14); doc.setFont("helvetica","normal");
+  doc.text("This certifies that", W/2, 168, {align:"center"});
+  // Name
+  doc.setFontSize(34); doc.setFont("helvetica","bold"); doc.setTextColor("#1a2744");
+  doc.text(s.name, W/2, 215, {align:"center"});
+  const nw=doc.getTextWidth(s.name);
+  doc.setDrawColor("#c9a84c"); doc.setLineWidth(2);
+  doc.line(W/2-nw/2, 222, W/2+nw/2, 222);
+  // Body text
+  doc.setFontSize(12); doc.setFont("helvetica","normal"); doc.setTextColor("#333333");
+  (CERT_MSGS[type]||"").split("\n").forEach((l,i)=>doc.text(l,W/2,252+i*20,{align:"center"}));
+  // Date
+  doc.setFontSize(11); doc.setTextColor("#1a2744");
+  doc.text("July 24, 2026", W/2, 310, {align:"center"});
+  // Signature lines
+  const sy=H-85;
+  doc.setDrawColor("#1a2744"); doc.setLineWidth(1);
+  doc.line(70,sy,270,sy); doc.line(W-270,sy,W-70,sy);
+  doc.setFontSize(9); doc.setTextColor("#555555");
+  doc.text("Lead Instructor",170,sy+15,{align:"center"});
+  doc.text("Young Horizon Chess Director",W-170,sy+15,{align:"center"});
+  // Footer bar
+  doc.setFillColor("#1a2744"); doc.rect(0,H-32,W,32,"F");
+  doc.setTextColor("#c9a84c"); doc.setFontSize(9);
+  doc.text("younghorizonchess.ca  ·  River West Christian Church, Edmonton", W/2, H-12, {align:"center"});
+  doc.save("YHC_Certificate_"+s.name.replace(/ /g,"_")+"_"+type+".pdf");
+  addLog("🏆 Certificate generated: "+s.name+" — "+CERT_TITLES[type]);
+};
+window.generateAllCerts = () => Object.keys(students).forEach(id=>generateCert(id));
+
+function renderCerts() {
+  const container=document.getElementById("certList");
+  if (!container) return;
+  const ids=Object.keys(students);
+  if (!ids.length) { container.innerHTML='<p class="muted">No students yet. Add them in the Roster tab.</p>'; return; }
+  container.innerHTML=`
+    <div class="toolbar" style="margin-bottom:1rem">
+      <label><strong>Certificate Type:</strong></label>
+      <select id="certType" class="input-sm">
+        <option value="completion">Certificate of Completion</option>
+        <option value="champion">Camp Champion</option>
+        <option value="puzzle">Puzzle Master</option>
+        <option value="improved">Most Improved</option>
+        <option value="sport">Sportsmanship</option>
+      </select>
+      <button class="btn-primary" onclick="generateAllCerts()">⬇ Download All</button>
+    </div>
+    <div style="overflow-x:auto"><table class="data-table">
+      <thead><tr><th>Name</th><th>Group</th><th>Email</th><th>Action</th></tr></thead>
+      <tbody>${ids.map(id=>{
+        const s=students[id];
+        return `<tr><td>${s.name}</td><td>${s.group||"—"}</td><td>${s.email||"—"}</td>
+          <td><button class="btn-sm" onclick="generateCert('${id}')">⬇ Download</button></td></tr>`;
+      }).join("")}</tbody>
+    </table></div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IMPORT / EXPORT
+// ─────────────────────────────────────────────────────────────────────────────
+window.importCSV = async () => {
+  const txt=document.getElementById("importText").value.trim();
+  if (!txt) return;
+  let imported=0;
+  for (const line of txt.split("\n").filter(l=>l.trim())) {
+    const p=line.split(",").map(s=>s.trim());
+    if (p[0]) {
+      const id="s_"+Date.now()+"_"+Math.random().toString(36).slice(2,5);
+      await saveStudent(id,{name:p[0]||"",age:p[1]||"",group:p[2]||"",email:p[3]||"",phone:p[4]||""});
+      imported++;
+    }
+  }
+  document.getElementById("importStatus").textContent="✅ Imported "+imported+" student(s).";
+  document.getElementById("importText").value="";
+  renderAll();
+};
+window.exportCSV = () => {
+  const rows=[["Name","Age","Group","Email","Phone","Emergency Name","Emergency Phone","Pickup","Check-In","Check-Out"]];
+  Object.keys(students).forEach(id=>{
+    const s=students[id], ci=checkins[id]||{};
+    rows.push([s.name,s.age,s.group,s.email,s.phone,s.emergName,s.emergPhone,s.pickup,ci.timeIn||"",ci.timeOut||""]);
+  });
+  const csv=rows.map(r=>r.map(v=>`"${(v||"").replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a=Object.assign(document.createElement("a"),{href:URL.createObjectURL(new Blob([csv],{type:"text/csv"})),download:"yhc_attendance_"+todayStr()+".csv"});
+  a.click();
+};
+window.exportJSON = () => {
+  const a=Object.assign(document.createElement("a"),{
+    href:URL.createObjectURL(new Blob([JSON.stringify({students,checkins,exportedAt:new Date().toISOString()},null,2)],{type:"application/json"})),
+    download:"yhc_backup_"+todayStr()+".json"
+  });
+  a.click();
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SETTINGS
+// ─────────────────────────────────────────────────────────────────────────────
+window.saveSettings = () => {
+  ["apiKey","authDomain","projectId","storageBucket","messagingSenderId","appId"].forEach(k=>{
+    const v=document.getElementById("cfg_"+k)?.value?.trim();
+    if(v) localStorage.setItem("yhc_"+k,v);
+  });
+  ["ejs_service","ejs_template","ejs_pubkey"].forEach(k=>{
+    const v=document.getElementById("cfg_"+k)?.value?.trim();
+    if(v) localStorage.setItem("yhc_"+k,v);
+  });
+  alert("Settings saved. Reload the page to apply changes.");
+};
+window.clearSettings = () => {
+  if (!confirm("Clear all saved config and reload?")) return;
+  ["apiKey","authDomain","projectId","storageBucket","messagingSenderId","appId",
+   "ejs_service","ejs_template","ejs_pubkey"].forEach(k=>localStorage.removeItem("yhc_"+k));
+  location.reload();
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SETUP WIZARD
+// ─────────────────────────────────────────────────────────────────────────────
+window.saveSetupConfig = () => {
+  const fields={
+    apiKey:"setup_apiKey", authDomain:"setup_authDomain", projectId:"setup_projectId",
+    storageBucket:"setup_storageBucket", messagingSenderId:"setup_messagingSenderId", appId:"setup_appId",
+    ejs_service:"setup_ejs_service", ejs_template:"setup_ejs_template", ejs_pubkey:"setup_ejs_pubkey"
+  };
+  Object.entries(fields).forEach(([k,elId])=>{
+    const v=document.getElementById(elId)?.value?.trim();
+    if(v) localStorage.setItem("yhc_"+k,v);
+  });
+  location.reload();
+};
+
+</script>
+
+<!-- External libs (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0f1923;       /* main site dark bg */
+  --navy2:#1a2744;      /* slightly lighter navy for cards/surfaces */
+  --gold:#c9a84c;       /* main site gold accent */
+  --gold-light:#e8c96a; /* lighter gold for hover/text on dark */
+  --surface:#162030;    /* card backgrounds on dark */
+  --surface2:#1e2d42;   /* elevated surfaces */
+  --border:#2a3f5a;     /* subtle borders on dark */
+  --text:#f0f0f0;       /* primary text on dark */
+  --muted:#8a9ab0;      /* muted text */
+  --green:#2d7a4f;
+  --red:#c0392b;
+  --cream:#fdf6e3;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--navy);color:var(--text);font-size:14px}
+
+/* ── Screens ── */
+.screen{min-height:100vh;align-items:center;justify-content:center;background:var(--navy);display:none}
+.screen.show{display:flex}
+
+/* ── Auth / Setup cards ── */
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:2.5rem;width:420px;box-shadow:0 12px 48px rgba(0,0,0,.6)}
+.auth-card h1{color:var(--gold);margin-bottom:.2rem;font-size:20px}
+.auth-card .sub{color:var(--muted);font-size:13px;margin-bottom:1.5rem}
+.setup-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:2.5rem;width:620px;max-height:90vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,.6)}
+.setup-card h2{color:var(--gold);margin-bottom:.2rem;font-size:18px}
+.setup-card .sub{color:var(--muted);font-size:13px;margin-bottom:1rem}
+.setup-section{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-top:1rem}
+.setup-section h3{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--gold);margin-bottom:.75rem}
+.step{display:inline-block;background:var(--gold);color:var(--navy);font-weight:800;width:22px;height:22px;border-radius:50%;text-align:center;line-height:22px;margin-right:.4rem;font-size:11px}
+
+/* ── App shell ── */
+#appShell{min-height:100vh;flex-direction:column;display:none;background:var(--navy)}
+#appShell.show{display:flex}
+
+/* ── Top bar ── */
+.top-bar{background:var(--surface);border-bottom:2px solid var(--gold);display:flex;align-items:center;justify-content:space-between;padding:.65rem 1.5rem;gap:1rem;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.5);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:.75rem}
+.brand h1{font-size:16px;color:var(--gold);font-weight:800;letter-spacing:.3px}
+.brand-sub{font-size:11px;color:var(--muted)}
+.top-right{display:flex;align-items:center;gap:.75rem;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.top-right strong{color:var(--text)}
+.date-chip{background:var(--gold);color:var(--navy);font-weight:800;padding:.2rem .75rem;border-radius:20px;font-size:11px}
+
+/* ── Tabs ── */
+.tab-bar{background:var(--surface);display:flex;overflow-x:auto;border-bottom:2px solid var(--border);padding:0 .75rem;gap:.1rem;flex-shrink:0}
+.tab-btn{background:transparent;border:none;color:var(--muted);padding:.65rem 1rem;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+.main{flex:1;padding:1.25rem;max-width:1200px;margin:0 auto;width:100%}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* ── Cards ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.25rem;box-shadow:0 2px 12px rgba(0,0,0,.3);margin-bottom:1rem}
+.card-title{font-size:15px;font-weight:700;color:var(--gold-light);margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+
+/* ── Check-in grid ── */
+.group-header{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);background:var(--surface2);border:1px solid var(--border);padding:.35rem .75rem;border-radius:5px;margin:.75rem 0 .35rem}
+.ci-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:.65rem;margin-bottom:.5rem}
+.ci-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.8rem;transition:border-color .15s}
+.ci-card.status-in{border-color:#2d7a4f;background:#0d2318}
+.ci-card.status-out{border-color:var(--border);opacity:.7}
+.ci-name{font-weight:700;color:var(--text);font-size:13px;margin-bottom:.1rem}
+.ci-meta{font-size:11px;color:var(--muted);margin-bottom:.4rem}
+.ci-times{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.4rem}
+.ci-actions{display:flex;gap:.4rem;flex-wrap:wrap}
+.badge-in{background:#0d2318;color:#4ade80;border:1px solid #2d7a4f;padding:.1rem .45rem;border-radius:4px;font-size:11px;font-weight:700}
+.badge-out{background:#2a1218;color:#f87171;border:1px solid #7b1c1c;padding:.1rem .45rem;border-radius:4px;font-size:11px;font-weight:700}
+.done-label{color:var(--muted);font-size:11px;align-self:center}
+
+/* ── Chips ── */
+.chip{display:inline-block;padding:.15rem .55rem;border-radius:10px;font-size:11px;font-weight:700}
+.status-in{background:#0d2318;color:#4ade80;border:1px solid #2d7a4f}
+.status-out{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+.status-absent{background:#2a1218;color:#f87171;border:1px solid #7b1c1c}
+
+/* ── Stats ── */
+.stat-row{display:flex;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap}
+.stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;flex:1;min-width:90px;text-align:center}
+.stat-box.green{background:#0d2318;border-color:#2d7a4f}
+.stat-box.gold{background:#1e1800;border-color:var(--gold)}
+.stat-box.navy{background:var(--surface2);border-color:var(--border)}
+.stat-num{display:block;font-size:26px;font-weight:800;color:var(--gold-light);line-height:1.2}
+.stat-lbl{display:block;font-size:11px;color:var(--muted);font-weight:600}
+
+/* ── Tables ── */
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{background:var(--surface2);color:var(--gold);padding:.5rem .75rem;text-align:left;font-size:12px;font-weight:700;white-space:nowrap;border-bottom:1px solid var(--gold)}
+.data-table td{padding:.45rem .75rem;border-bottom:1px solid var(--border);color:var(--text)}
+.data-table tr:hover td{background:var(--surface2)}
+
+/* ── Buttons ── */
+.btn-primary{background:var(--gold);color:var(--navy);border:none;padding:.55rem 1.1rem;border-radius:6px;font-weight:800;font-size:13px;cursor:pointer;transition:opacity .15s}
+.btn-primary:hover{opacity:.85}
+.btn-gold{background:var(--gold);color:var(--navy);border:none;padding:.55rem 1.1rem;border-radius:6px;font-weight:800;font-size:13px;cursor:pointer}
+.btn-outline{background:transparent;border:1.5px solid var(--gold);color:var(--gold);padding:.5rem 1rem;border-radius:6px;font-weight:600;font-size:13px;cursor:pointer}
+.btn-outline:hover{background:rgba(201,168,76,.1)}
+.btn-sm{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.22rem .55rem;border-radius:4px;font-size:12px;cursor:pointer}
+.btn-sm:hover{border-color:var(--gold);color:var(--gold)}
+.btn-sm.danger{color:#f87171}
+.btn-checkin{background:#2d7a4f;color:#fff;border:none;padding:.28rem .65rem;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer}
+.btn-checkout{background:#c0392b;color:#fff;border:none;padding:.28rem .65rem;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer}
+
+/* ── Forms ── */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
+.fg{display:flex;flex-direction:column;gap:.25rem;margin-bottom:.4rem}
+.fg label{font-size:12px;font-weight:600;color:var(--gold-light)}
+.fg input,.fg select,.fg textarea{padding:.48rem .7rem;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text)}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--gold);outline:none}
+.fg select option{background:var(--surface2);color:var(--text)}
+.input-sm{padding:.3rem .6rem;border:1px solid var(--border);border-radius:4px;font-size:13px;background:var(--surface2);color:var(--text)}
+textarea{resize:vertical}
+
+/* ── Toolbar ── */
+.toolbar{display:flex;gap:.65rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem}
+.toolbar input[type=search]{padding:.44rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:13px;min-width:180px;background:var(--surface2);color:var(--text)}
+.toolbar input[type=search]:focus{border-color:var(--gold);outline:none}
+
+/* ── Log ── */
+.log-entry{display:flex;gap:.75rem;padding:.45rem 0;border-bottom:1px solid var(--border);font-size:13px;align-items:baseline}
+.log-time{color:var(--muted);min-width:65px;font-size:11px;flex-shrink:0}
+.log-msg{flex:1;color:var(--text)}
+.log-user{color:var(--muted);font-size:11px;flex-shrink:0}
+
+/* ── QR cards ── */
+.qr-grid{display:flex;flex-wrap:wrap;gap:.65rem}
+.qr-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem;text-align:center;width:160px}
+.qr-name{font-weight:700;color:var(--text);font-size:13px;margin-bottom:.1rem}
+.qr-meta{font-size:11px;color:var(--muted);margin-bottom:.4rem}
+.qr-actions{margin-top:.5rem;display:flex;gap:.4rem;justify-content:center}
+
+/* ── Modal ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.75rem;width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,.6)}
+.modal h2{color:var(--gold);margin-bottom:1.1rem;font-size:15px}
+.modal-footer{display:flex;justify-content:flex-end;gap:.65rem;margin-top:1.1rem}
+.section-sep{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--gold);margin:1rem 0 .4rem;border-bottom:1px solid var(--border);padding-bottom:.2rem}
+
+/* ── Comms ── */
+.comms-grid{display:grid;grid-template-columns:1fr 2fr;gap:1rem}
+@media(max-width:680px){.comms-grid,.form-row{grid-template-columns:1fr}}
+
+/* ── Misc ── */
+.muted{color:var(--muted);font-style:italic}
+hr{border:none;border-top:1px solid var(--border);margin:.75rem 0}
+a{color:var(--gold)}
+a:hover{color:var(--gold-light)}
+code{background:var(--surface2);color:var(--gold-light);padding:.1rem .35rem;border-radius:3px;font-size:11px;border:1px solid var(--border)}
+ol{padding-left:1.2rem;line-height:1.9;font-size:13px;color:var(--text)}
+/* inline form controls in comms tab */
+#commRecipient,#commTemplate,#commSubject,#commBody,#logInput{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+#commRecipient:focus,#commTemplate:focus,#commSubject:focus,#commBody:focus,#logInput:focus{border-color:var(--gold);outline:none}
+/* import textarea */
+#importText{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<!-- ═══ SETUP SCREEN ════════════════════════════════════════════════════════ -->
+<div id="setupScreen" class="screen">
+<div class="setup-card">
+  <h2>⚙️ First-Time Setup</h2>
+  <p class="sub">The tracker needs Firebase for secure login + data storage, and optionally EmailJS for sending parent emails. Follow the steps below, then click Save & Launch.</p>
+
+  <div class="setup-section">
+    <h3><span class="step">1</span>Create a Firebase Project</h3>
+    <ol>
+      <li>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → <strong>Add project</strong></li>
+      <li>Enable <strong>Authentication</strong> → Sign-in method → Email/Password</li>
+      <li>Add your admin user under Authentication → Users tab</li>
+      <li>Enable <strong>Firestore Database</strong> → Start in Production mode</li>
+      <li>In Firestore Rules, set: <code>allow read, write: if request.auth != null;</code></li>
+      <li>Go to Project Settings → Your apps → ⊕ Web app → copy the config values below</li>
+    </ol>
+  </div>
+
+  <div class="setup-section">
+    <h3><span class="step">2</span>Firebase Config</h3>
+    <div class="form-row">
+      <div class="fg"><label>API Key</label><input id="setup_apiKey" placeholder="AIzaSy…"></div>
+      <div class="fg"><label>Auth Domain</label><input id="setup_authDomain" placeholder="yourapp.firebaseapp.com"></div>
+      <div class="fg"><label>Project ID</label><input id="setup_projectId" placeholder="younghorizon-chess"></div>
+      <div class="fg"><label>Storage Bucket</label><input id="setup_storageBucket" placeholder="yourapp.appspot.com"></div>
+      <div class="fg"><label>Messaging Sender ID</label><input id="setup_messagingSenderId" placeholder="1234567890"></div>
+      <div class="fg"><label>App ID</label><input id="setup_appId" placeholder="1:123:web:abc"></div>
+    </div>
+  </div>
+
+  <div class="setup-section">
+    <h3><span class="step">3</span>EmailJS — optional (for parent emails)</h3>
+    <ol>
+      <li>Go to <a href="https://www.emailjs.com" target="_blank">emailjs.com</a> → create a free account</li>
+      <li>Add an Email Service (Gmail recommended)</li>
+      <li>Create a Template with variables: <code>{{to_email}}</code> <code>{{to_name}}</code> <code>{{subject}}</code> <code>{{message}}</code></li>
+      <li>Copy your Service ID, Template ID, and Public Key below</li>
+    </ol>
+    <div class="form-row" style="margin-top:.5rem">
+      <div class="fg"><label>Service ID</label><input id="setup_ejs_service" placeholder="service_xxxxx"></div>
+      <div class="fg"><label>Template ID</label><input id="setup_ejs_template" placeholder="template_xxxxx"></div>
+      <div class="fg"><label>Public Key</label><input id="setup_ejs_pubkey" placeholder="your_public_key"></div>
+    </div>
+  </div>
+
+  <div style="margin-top:1.5rem">
+    <button class="btn-primary" onclick="saveSetupConfig()" style="width:100%;padding:.75rem">Save &amp; Launch Tracker</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══ LOGIN SCREEN ════════════════════════════════════════════════════════ -->
+<div id="loginScreen" class="screen show">
+<div class="auth-card">
+  <h1>♟ Young Horizon Chess</h1>
+  <p class="sub">Camp Tracker — Admin Login</p>
+  <div class="fg"><label>Email</label><input id="loginEmail" type="email" placeholder="admin@example.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+  <div class="fg"><label>Password</label><input id="loginPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+  <div id="loginErr" style="color:#f87171;font-size:13px;min-height:18px;margin:.25rem 0"></div>
+  <button class="btn-primary" onclick="doLogin()" style="width:100%;padding:.65rem;margin-top:.5rem">Sign In</button>
+  <p style="margin-top:1rem;font-size:12px;color:var(--muted);text-align:center">Restricted to authorized camp staff only.</p>
+</div>
+</div>
+
+<!-- ═══ APP SHELL ════════════════════════════════════════════════════════════ -->
+<div id="appShell">
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div class="brand">
+      <span style="font-size:24px">♟</span>
+      <div>
+        <h1>Young Horizon Chess</h1>
+        <div class="brand-sub">Summer Boot Camp 2026 · July 13–24 · Edmonton</div>
+      </div>
+    </div>
+    <div class="top-right">
+      <span class="date-chip" id="todayChip"></span>
+      <span>Signed in as <strong id="adminEmail"></strong></span>
+      <button class="btn-sm" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <button id="tab-checkin"    class="tab-btn active" onclick="showTab('checkin')">✅ Check-In</button>
+    <button id="tab-attendance" class="tab-btn" onclick="showTab('attendance')">📊 Attendance</button>
+    <button id="tab-qr"         class="tab-btn" onclick="showTab('qr')">📷 QR Scan</button>
+    <button id="tab-roster"     class="tab-btn" onclick="showTab('roster')">📋 Roster</button>
+    <button id="tab-emergency"  class="tab-btn" onclick="showTab('emergency')">🚨 Emergency</button>
+    <button id="tab-comms"      class="tab-btn" onclick="showTab('comms')">📧 Comms</button>
+    <button id="tab-certs"      class="tab-btn" onclick="showTab('certs')">🏆 Certs</button>
+    <button id="tab-log"        class="tab-btn" onclick="showTab('log')">📝 Log</button>
+    <button id="tab-import"     class="tab-btn" onclick="showTab('import')">⬆ Import</button>
+    <button id="tab-settings"   class="tab-btn" onclick="showTab('settings')">⚙️ Settings</button>
+  </div>
+
+  <div class="main">
+
+    <!-- CHECK-IN -->
+    <div id="panel-checkin" class="tab-panel active">
+      <div class="toolbar">
+        <input type="search" id="ciSearch" placeholder="Search by name or group…" oninput="renderCheckin()">
+        <button class="btn-gold" onclick="openAddStudent()">+ Add Student</button>
+        <button class="btn-outline" onclick="exportCSV()">⬇ Export CSV</button>
+      </div>
+      <div id="ciList"><p class="muted">Loading…</p></div>
+    </div>
+
+    <!-- ATTENDANCE -->
+    <div id="panel-attendance" class="tab-panel">
+      <div class="card">
+        <div class="card-title">Today's Attendance</div>
+        <div id="attendanceSummary"></div>
+      </div>
+    </div>
+
+    <!-- QR SCAN -->
+    <div id="panel-qr" class="tab-panel">
+      <div class="card">
+        <div class="card-title">QR Code Check-In</div>
+        <div class="toolbar">
+          <button id="scanBtn" class="btn-primary" onclick="toggleScan()">📷 Scan QR to Check In</button>
+          <input type="search" id="qrSearch" placeholder="Filter by name…" oninput="renderQR()">
+        </div>
+        <video id="scanVideo" style="display:none;width:100%;max-width:360px;border-radius:8px;margin-bottom:.75rem" autoplay playsinline></video>
+        <canvas id="scanCanvas" style="display:none"></canvas>
+        <p class="muted" style="margin-bottom:1rem;font-size:12px">Print QR cards and post them at the check-in desk. Scan a code to instantly check in or out.</p>
+        <div id="qrContainer" class="qr-grid"></div>
+      </div>
+    </div>
+
+    <!-- ROSTER -->
+    <div id="panel-roster" class="tab-panel">
+      <div class="card">
+        <div class="card-title">
+          Student Roster
+          <button class="btn-gold" onclick="openAddStudent()">+ Add Student</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Name</th><th>Age</th><th>Group</th><th>Parent Email</th><th>Phone</th><th>Emergency</th><th>Actions</th></tr></thead>
+            <tbody id="rosterBody"><tr><td colspan="7" class="muted">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMERGENCY -->
+    <div id="panel-emergency" class="tab-panel">
+      <div class="card">
+        <div class="card-title">Emergency Contacts &amp; Authorized Pickup</div>
+        <div id="emergList"><p class="muted">Loading…</p></div>
+      </div>
+    </div>
+
+    <!-- COMMS -->
+    <div id="panel-comms" class="tab-panel">
+      <div class="card">
+        <div class="card-title">Parent Communications</div>
+        <div class="comms-grid">
+          <div>
+            <div class="fg"><label>Recipient</label>
+              <select id="commRecipient" style="padding:.48rem .7rem;border:1.5px solid var(--border);border-radius:6px;font-size:13px">
+                <option value="all">📢 All Parents</option>
+              </select>
+            </div>
+            <div class="fg"><label>Template</label>
+              <select id="commTemplate" onchange="loadTemplate()" style="padding:.48rem .7rem;border:1.5px solid var(--border);border-radius:6px;font-size:13px">
+                <option value="">— Pick a template —</option>
+                <option value="welcome">Welcome Email</option>
+                <option value="reminder">Camp Reminder</option>
+                <option value="pickup">Pick-Up Reminder</option>
+                <option value="achievement">Achievement Badge</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <div class="fg"><label>Subject</label><input id="commSubject" placeholder="Email subject…"></div>
+            <div class="fg">
+              <label>Message &nbsp;<span style="font-weight:400;color:var(--muted);font-size:11px">use {name}, {parentName}, {group}, {pickup}</span></label>
+              <textarea id="commBody" rows="8" placeholder="Write your message here…"></textarea>
+            </div>
+            <div style="display:flex;gap:.65rem;align-items:center;flex-wrap:wrap">
+              <button class="btn-primary" onclick="sendEmails()">📤 Send Email</button>
+              <span id="commStatus" style="font-size:13px;color:var(--green)"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CERTS -->
+    <div id="panel-certs" class="tab-panel">
+      <div class="card">
+        <div class="card-title">Generate &amp; Download Certificates</div>
+        <div id="certList"><p class="muted">Loading…</p></div>
+      </div>
+    </div>
+
+    <!-- LOG -->
+    <div id="panel-log" class="tab-panel">
+      <div class="card">
+        <div class="card-title">Daily Activity Log</div>
+        <div style="display:flex;gap:.65rem;margin-bottom:1rem">
+          <input id="logInput" type="text" placeholder="Add a manual log entry…"
+            style="flex:1;padding:.48rem .75rem;border:1.5px solid var(--border);border-radius:6px;font-size:13px"
+            onkeydown="if(event.key==='Enter')addManualLog()">
+          <button class="btn-primary" onclick="addManualLog()">Add</button>
+        </div>
+        <div id="logList"></div>
+      </div>
+    </div>
+
+    <!-- IMPORT -->
+    <div id="panel-import" class="tab-panel">
+      <div class="card">
+        <div class="card-title">Import Students (CSV)</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">One student per line: <code>Name, Age, Group, ParentEmail, Phone</code></p>
+        <textarea id="importText" rows="8" style="width:100%;padding:.75rem;border:1.5px solid var(--border);border-radius:6px;font-family:monospace;font-size:12px"
+          placeholder="Alice Smith, 9, Beginner (Ages 6-8), alice@example.com, 780-555-1234
+Bob Jones, 11, Intermediate (Ages 9-10), bob@example.com, 780-555-5678"></textarea>
+        <div style="display:flex;gap:.65rem;align-items:center;margin-top:.65rem">
+          <button class="btn-primary" onclick="importCSV()">⬆ Import</button>
+          <span id="importStatus" style="font-size:13px;color:var(--green)"></span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Export Data</div>
+        <div style="display:flex;gap:.65rem;flex-wrap:wrap">
+          <button class="btn-primary" onclick="exportCSV()">⬇ Export CSV (Attendance)</button>
+          <button class="btn-outline" onclick="exportJSON()">⬇ Export JSON (Full Backup)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="panel-settings" class="tab-panel">
+      <div class="card">
+        <div class="card-title">Firebase Configuration</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Changes apply after page reload.</p>
+        <div class="form-row">
+          <div class="fg"><label>API Key</label><input id="cfg_apiKey" placeholder="AIzaSy…"></div>
+          <div class="fg"><label>Auth Domain</label><input id="cfg_authDomain" placeholder="yourapp.firebaseapp.com"></div>
+          <div class="fg"><label>Project ID</label><input id="cfg_projectId"></div>
+          <div class="fg"><label>Storage Bucket</label><input id="cfg_storageBucket"></div>
+          <div class="fg"><label>Messaging Sender ID</label><input id="cfg_messagingSenderId"></div>
+          <div class="fg"><label>App ID</label><input id="cfg_appId"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">EmailJS Configuration</div>
+        <div class="form-row">
+          <div class="fg"><label>Service ID</label><input id="cfg_ejs_service" placeholder="service_xxxxx"></div>
+          <div class="fg"><label>Template ID</label><input id="cfg_ejs_template" placeholder="template_xxxxx"></div>
+          <div class="fg"><label>Public Key</label><input id="cfg_ejs_pubkey" placeholder="your_public_key"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:.65rem;flex-wrap:wrap">
+        <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+        <button class="btn-sm danger" onclick="clearSettings()">Reset All Config</button>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /appShell -->
+
+<!-- ═══ STUDENT MODAL ════════════════════════════════════════════════════════ -->
+<div id="studentModal" class="modal-overlay">
+<div class="modal">
+  <h2>Student Details</h2>
+  <form id="stuForm" onsubmit="return false">
+  <input type="hidden" id="stuId">
+  <div class="form-row">
+    <div class="fg"><label>Full Name *</label><input id="stu_name" placeholder="First Last"></div>
+    <div class="fg"><label>Age</label><input id="stu_age" type="number" min="5" max="18" placeholder="9"></div>
+    <div class="fg"><label>Skill Group</label>
+      <select id="stu_group">
+        <option value="">— Select —</option>
+        <option>Beginner (Ages 6–8)</option>
+        <option>Intermediate (Ages 9–10)</option>
+        <option>Advanced (Ages 11–12)</option>
+      </select>
+    </div>
+    <div class="fg"><label>Parent Email</label><input id="stu_email" type="email" placeholder="parent@example.com"></div>
+    <div class="fg"><label>Parent Phone</label><input id="stu_phone" placeholder="780-555-0000"></div>
+  </div>
+  <div class="section-sep">Emergency Contact</div>
+  <div class="form-row">
+    <div class="fg"><label>Emergency Contact Name</label><input id="stu_emergName" placeholder="Full name"></div>
+    <div class="fg"><label>Emergency Phone</label><input id="stu_emergPhone" placeholder="780-555-0001"></div>
+  </div>
+  <div class="fg"><label>Authorized Pickup (names)</label><input id="stu_pickup" placeholder="Mom, Dad, Grandma Smith"></div>
+  <div class="fg"><label>Notes / Allergies</label><textarea id="stu_notes" rows="2" placeholder="Any allergies, medical notes…"></textarea></div>
+  </form>
+  <div class="modal-footer">
+    <button class="btn-sm" onclick="closeStudentModal()">Cancel</button>
+    <button class="btn-primary" onclick="saveStudentForm()">Save Student</button>
+  </div>
+</div>
+</div>
+
+<script>
+// Set today chip
+document.getElementById("todayChip").textContent =
+  new Date().toLocaleDateString("en-CA",{weekday:"short",month:"short",day:"numeric"});
+
+// Pre-fill settings with stored values
+window.addEventListener("DOMContentLoaded", () => {
+  ["apiKey","authDomain","projectId","storageBucket","messagingSenderId","appId"].forEach(k=>{
+    const el=document.getElementById("cfg_"+k); if(el) el.value=localStorage.getItem("yhc_"+k)||"";
+  });
+  ["ejs_service","ejs_template","ejs_pubkey"].forEach(k=>{
+    const el=document.getElementById("cfg_"+k); if(el) el.value=localStorage.getItem("yhc_"+k)||"";
+  });
+});
+</script>
+
+</body>
+</html>
