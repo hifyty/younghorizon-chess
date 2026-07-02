@@ -25,9 +25,25 @@ const FB = {
   messagingSenderId: localStorage.getItem("yhc_messagingSenderId") || "",
   appId:             localStorage.getItem("yhc_appId")             || "",
 };
-const EJS_SVC  = localStorage.getItem("yhc_ejs_service")  || "";
-const EJS_TPL  = localStorage.getItem("yhc_ejs_template") || "";
-const EJS_KEY  = localStorage.getItem("yhc_ejs_pubkey")   || "";
+// ── Brevo transactional email ──────────────────────────────────────────────
+async function sendEmailViaBrevo(toEmail, toName, subject, body) {
+  const apiKey     = localStorage.getItem("yhc_brevo_key")    || "";
+  const senderAddr = localStorage.getItem("yhc_brevo_sender") || "";
+  if (!apiKey)     throw new Error("no_key");
+  if (!senderAddr) throw new Error("no_sender");
+  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: { "accept":"application/json", "api-key": apiKey, "content-type":"application/json" },
+    body: JSON.stringify({
+      sender: { name:"Young Horizon Chess", email: senderAddr },
+      to: [{ email: toEmail, name: toName }],
+      subject,
+      textContent: body
+    })
+  });
+  if (!res.ok) { const e=await res.json().catch(()=>({})); throw new Error(e.message||"HTTP "+res.status); }
+  return res.json();
+}
 const configOK = !!(FB.apiKey && FB.projectId);
 
 let app, auth, db;
@@ -62,6 +78,7 @@ if (configOK) {
     document.getElementById("setupScreen").style.display  = "none";
     if (user) {
       document.getElementById("adminEmail").textContent = user.email;
+      window._currentUserEmail = user.email;
       loadAllData();
     }
   });
@@ -390,10 +407,85 @@ function renderLog() {
 // COMMS TAB
 // ─────────────────────────────────────────────────────────────────────────────
 const TEMPLATES = {
-  welcome:    { sub:"Welcome to Young Horizon Chess Boot Camp!", body:`Hi {parentName},\n\nWelcome! We're excited to have {name} joining us for the Young Horizon Chess Summer Boot Camp (July 13–24, 2026).\n\nCamp runs 8:45 AM – 2:45 PM daily at River West Christian Church, Edmonton.\n\nPlease ensure your child brings:\n• A water bottle\n• Nut-free snack\n• Chess notation notebook (provided on Day 1)\n\nSee you July 13!\n\nYoung Horizon Chess Team\nyounghorizonchess.ca` },
-  reminder:   { sub:"Reminder: Camp Tomorrow — Young Horizon Chess", body:`Hi {parentName},\n\nJust a reminder that camp runs tomorrow (8:45 AM – 2:45 PM) at River West Christian Church.\n\n{name} is in the {group} group.\n\nSee you there!\n\nYoung Horizon Chess Team` },
-  pickup:     { sub:"Pick-Up Reminder — Young Horizon Chess", body:`Hi {parentName},\n\nThis is a reminder that pick-up for {name} is at 2:45 PM today.\n\nAuthorized pickup: {pickup}\n\nThank you!\n\nYoung Horizon Chess Team` },
-  achievement:{ sub:"🏆 {name} Earned a Badge — Young Horizon Chess", body:`Hi {parentName},\n\nGreat news! {name} earned a new achievement badge today at Young Horizon Chess Boot Camp.\n\nWe're so proud of the progress they're making!\n\nYoung Horizon Chess Team\nyounghorizonchess.ca` },
+  precamp:    { sub:"Welcome to Young Horizon Chess Boot Camp 2026 — What to Bring", body:`Hi {parentName},
+
+We are so excited to welcome {name} to the Young Horizon Chess Summer Boot Camp 2026! Camp starts this Monday, July 13, and we want to make sure you and your child are fully prepared.
+
+CAMP DETAILS
+Dates: Monday, July 13 – Thursday, July 24, 2026 (weekdays only)
+Location: River West Christian Church, 11245 – 165 Ave NW, Edmonton, AB
+Drop-off: 8:45 AM | Pick-up: 2:45 PM (no later than 3:30 PM)
+Lead Instructor: Ife Akinpelu | Phone: 437-216-3282
+
+WHAT TO BRING EACH DAY
+- Water bottle (clearly labelled with your child's name)
+- Nut-free snack and a packed lunch (no microwave on site)
+- Comfortable, casual clothing and indoor shoes
+- Positive attitude and readiness to learn!
+
+OPTIONAL
+- Personal chess set (not required — sets are provided)
+- Chess notation book or notebook
+
+PLEASE NOTE
+- The building is locked at all times. Drop off and pick up at the main entrance — a staff member will be at the door.
+- Campers who leave the building cannot re-enter. Please ensure your child uses the washroom before lunch.
+- All prescribed medications must be declared to staff and stored safely.
+- In case of emergency, we will contact you at the phone number on file.
+
+WHAT TO EXPECT ON DAY 1
+{name} will receive their Camp Passport, name tag, and be placed in a skill group (Rooks or Queens). The morning starts with a fun icebreaker and the first chess lesson. There will be time for guided play in the afternoon.
+
+We are looking forward to an incredible two weeks! If you have any questions before Monday, please don't hesitate to reach out.
+
+Warm regards,
+Ife Akinpelu
+Lead Instructor — Young Horizon Chess
+younghorizonchess.ca | 437-216-3282` },
+
+  welcome:    { sub:"Welcome to Young Horizon Chess Boot Camp 2026!", body:`Hi {parentName},
+
+Welcome! We're thrilled to have {name} joining us for the Young Horizon Chess Summer Boot Camp (July 13–24, 2026).
+
+Camp runs 8:45 AM – 2:45 PM daily at River West Christian Church, Edmonton.
+
+If you have any questions, reply to this email or call us at 437-216-3282.
+
+See you July 13!
+
+Ife Akinpelu
+Young Horizon Chess
+younghorizonchess.ca` },
+
+  reminder:   { sub:"Reminder: Camp Tomorrow — Young Horizon Chess", body:`Hi {parentName},
+
+Just a reminder that camp runs tomorrow (8:45 AM – 2:45 PM) at River West Christian Church.
+
+{name} is in the {group} group. Please remember to bring a water bottle, nut-free snack, and packed lunch.
+
+See you there!
+
+Young Horizon Chess | 437-216-3282` },
+
+  pickup:     { sub:"Pick-Up Reminder — Young Horizon Chess", body:`Hi {parentName},
+
+This is a reminder that pick-up for {name} is at 2:45 PM today at the main entrance of River West Christian Church.
+
+Authorized pickup: {pickup}
+
+Please arrive by 3:30 PM at the latest. Thank you!
+
+Young Horizon Chess | 437-216-3282` },
+
+  achievement:{ sub:"🏆 {name} Earned a Badge — Young Horizon Chess", body:`Hi {parentName},
+
+Great news! {name} earned a new achievement badge today at Young Horizon Chess Boot Camp. We are so proud of the dedication and growth they are showing!
+
+Keep encouraging them — great things are happening on the chess board.
+
+Young Horizon Chess Team
+younghorizonchess.ca | 437-216-3282` },
+
   custom:     { sub:"", body:"" },
 };
 function renderComms() {
@@ -413,28 +505,62 @@ window.loadTemplate = () => {
   document.getElementById("commBody").value=t.body;
 };
 window.sendEmails = async () => {
-  if (!EJS_SVC||!EJS_TPL||!EJS_KEY) { alert("EmailJS is not configured. Go to Settings tab."); return; }
+  const brevoKey = localStorage.getItem("yhc_brevo_key")||"";
   const recipient=document.getElementById("commRecipient").value;
   const subject=document.getElementById("commSubject").value.trim();
   const body=document.getElementById("commBody").value.trim();
   if (!subject||!body) { alert("Subject and message are required."); return; }
   const targets=recipient==="all" ? Object.keys(students).filter(id=>students[id].email) : [recipient];
-  if (!targets.length) { alert("No email addresses on file."); return; }
-  if (!confirm("Send to "+targets.length+" recipient(s)?")) return;
+  if (!targets.length) { alert("No email addresses on file. Add parent emails in the Roster tab."); return; }
+  if (!brevoKey) {
+    if (!confirm("Brevo API key not set — fall back to your mail app instead?\n\n(To send directly, go to ⚙️ Settings and enter your Brevo API key.)")) return;
+    openMailto(); return;
+  }
+  if (!confirm("Send to "+targets.length+" parent(s) via Brevo?")) return;
   const statusEl=document.getElementById("commStatus");
-  statusEl.textContent="Sending…";
-  let sent=0, failed=0;
+  statusEl.style.color="var(--muted)"; statusEl.textContent="Sending…";
+  let sent=0, failed=0, failedNames=[];
   for (const id of targets) {
     const s=students[id];
     const fill = t => t.replace(/{name}/g,s.name).replace(/{parentName}/g,s.pickup||"Parent/Guardian")
                        .replace(/{group}/g,s.group||"").replace(/{pickup}/g,s.pickup||"");
     try {
-      await emailjs.send(EJS_SVC,EJS_TPL,{to_email:s.email,to_name:s.name,subject:fill(subject),message:fill(body)},EJS_KEY);
+      await sendEmailViaBrevo(s.email, s.name, fill(subject), fill(body));
       sent++;
-    } catch(e) { console.error(e); failed++; }
+    } catch(e) {
+      console.error("Brevo error for",s.name,":",e);
+      failed++; failedNames.push(s.name);
+    }
+    await new Promise(r=>setTimeout(r,300)); // avoid rate limiting
   }
-  statusEl.textContent="✅ Sent: "+sent+(failed?" ❌ Failed: "+failed:"");
+  if (failed) {
+    statusEl.style.color="var(--gold)";
+    statusEl.textContent="✅ Sent: "+sent+"   ❌ Failed: "+failed+" ("+failedNames.join(", ")+")";
+  } else {
+    statusEl.style.color="var(--green)";
+    statusEl.textContent="✅ Sent to "+sent+" parent(s)";
+  }
   await addLog("📧 Email sent to "+sent+" parent(s): \""+subject+"\"");
+};
+
+window.openMailto = () => {
+  const recipient=document.getElementById("commRecipient").value;
+  const subject=encodeURIComponent(document.getElementById("commSubject").value.trim()||"Message from Young Horizon Chess");
+  const body=document.getElementById("commBody").value.trim();
+  const targets=recipient==="all" ? Object.keys(students).filter(id=>students[id].email) : [recipient];
+  if (!targets.length) { alert("No email addresses on file."); return; }
+  const fill = (t,s) => t.replace(/{name}/g,s.name).replace(/{parentName}/g,s.pickup||"Parent/Guardian")
+                          .replace(/{group}/g,s.group||"").replace(/{pickup}/g,s.pickup||"");
+  if (recipient==="all") {
+    // BCC all — open single mailto with all addresses
+    const emails=targets.map(id=>students[id].email).join(",");
+    const firstS=students[targets[0]];
+    const bodyText=encodeURIComponent(body?fill(body,firstS):body);
+    window.open("mailto:?bcc="+emails+"&subject="+subject+"&body="+bodyText);
+  } else {
+    const s=students[recipient];
+    window.open("mailto:"+s.email+"?subject="+subject+"&body="+encodeURIComponent(fill(body,s)));
+  }
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -504,13 +630,62 @@ window.generateCert = (studentId) => {
 };
 window.generateAllCerts = () => Object.keys(students).forEach(id=>generateCert(id));
 
+// ── Email a certificate announcement to a student's parent ──────────────────
+window.emailCert = async (studentId) => {
+  const s = students[studentId];
+  if (!s) return;
+  const type  = document.getElementById("certType")?.value || "completion";
+  const title = CERT_TITLES[type] || "Certificate of Completion";
+  if (!s.email) { alert("No parent email on file for "+s.name+". Add it in the Roster tab."); return; }
+
+  const subject = "🏆 "+s.name+" earned their "+title+" — Young Horizon Chess 2026";
+  const body =
+    "Dear Parent / Guardian,\n\n"+
+    "Congratulations! "+s.name+" has earned their "+title+" at the Young Horizon Chess Summer Boot Camp 2026.\n\n"+
+    "Their certificate will be personally presented at our Awards Ceremony on Thursday, July 24, 2026. "+
+    "We are so proud of the dedication and growth "+s.name+" showed throughout the camp.\n\n"+
+    "Thank you for being part of the Young Horizon Chess family!\n\n"+
+    "Warm regards,\nIfe Akinpelu\nLead Instructor — Young Horizon Chess\nyounghorizonchess.ca";
+
+  const brevoKey = localStorage.getItem("yhc_brevo_key")||"";
+  const btn = document.getElementById("emailCertBtn_"+studentId);
+
+  if (brevoKey) {
+    if (btn) { btn.disabled=true; btn.textContent="Sending…"; }
+    try {
+      await sendEmailViaBrevo(s.email, s.name, subject, body);
+      addLog("📧 Cert email sent: "+s.name+" — "+title);
+      if (btn) { btn.textContent="✓ Sent"; btn.style.color="var(--green)"; }
+    } catch(e) {
+      console.error("Cert email error:",e);
+      alert("Email failed for "+s.name+": "+e.message+"\n\nCheck your Brevo API key in ⚙️ Settings, or use the mail app fallback.");
+      if (btn) { btn.disabled=false; btn.textContent="📧 Email"; }
+    }
+  } else {
+    // Fallback: mailto
+    const mailto = "mailto:"+encodeURIComponent(s.email)+
+      "?subject="+encodeURIComponent(subject)+
+      "&body="+encodeURIComponent(body);
+    window.open(mailto,"_blank");
+    addLog("📨 Cert email opened in mail app: "+s.name);
+  }
+};
+
+// ── Email cert announcement to ALL students ─────────────────────────────────
+window.emailAllCerts = async () => {
+  const ids = Object.keys(students);
+  if (!ids.length) { alert("No students yet."); return; }
+  if (!confirm("Send certificate announcement emails to all "+ids.length+" parents?")) return;
+  for (const id of ids) { await emailCert(id); await new Promise(r=>setTimeout(r,400)); }
+};
+
 function renderCerts() {
   const container=document.getElementById("certList");
   if (!container) return;
   const ids=Object.keys(students);
   if (!ids.length) { container.innerHTML='<p class="muted">No students yet. Add them in the Roster tab.</p>'; return; }
   container.innerHTML=`
-    <div class="toolbar" style="margin-bottom:1rem">
+    <div class="toolbar" style="margin-bottom:1rem;flex-wrap:wrap;gap:.5rem">
       <label><strong>Certificate Type:</strong></label>
       <select id="certType" class="input-sm">
         <option value="completion">Certificate of Completion</option>
@@ -520,13 +695,24 @@ function renderCerts() {
         <option value="sport">Sportsmanship</option>
       </select>
       <button class="btn-primary" onclick="generateAllCerts()">⬇ Download All</button>
+      <button class="btn-secondary" onclick="emailAllCerts()">📧 Email All Parents</button>
     </div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:.75rem">
+      <strong>Download</strong> saves the PDF locally. <strong>Email</strong> sends a congratulations announcement to the parent — requires EmailJS (Outlook) or falls back to your mail app.
+    </p>
     <div style="overflow-x:auto"><table class="data-table">
-      <thead><tr><th>Name</th><th>Group</th><th>Email</th><th>Action</th></tr></thead>
+      <thead><tr><th>Name</th><th>Group</th><th>Parent Email</th><th>Actions</th></tr></thead>
       <tbody>${ids.map(id=>{
         const s=students[id];
-        return `<tr><td>${s.name}</td><td>${s.group||"—"}</td><td>${s.email||"—"}</td>
-          <td><button class="btn-sm" onclick="generateCert('${id}')">⬇ Download</button></td></tr>`;
+        const hasEmail = s.email && s.email.trim();
+        return `<tr>
+          <td>${s.name}</td>
+          <td>${s.group||"—"}</td>
+          <td>${s.email||"<span style='color:var(--muted)'>none</span>"}</td>
+          <td style="display:flex;gap:.4rem;flex-wrap:wrap">
+            <button class="btn-sm" onclick="generateCert('${id}')">⬇ Download</button>
+            <button id="emailCertBtn_${id}" class="btn-sm" onclick="emailCert('${id}')" ${hasEmail?"":"disabled title='No email on file'"} style="background:var(--navy-mid,#2a3f6f);color:#fff">📧 Email</button>
+          </td></tr>`;
       }).join("")}</tbody>
     </table></div>`;
 }
@@ -576,16 +762,54 @@ window.saveSettings = () => {
     const v=document.getElementById("cfg_"+k)?.value?.trim();
     if(v) localStorage.setItem("yhc_"+k,v);
   });
-  ["ejs_service","ejs_template","ejs_pubkey"].forEach(k=>{
+  ["brevo_key","brevo_sender"].forEach(k=>{
     const v=document.getElementById("cfg_"+k)?.value?.trim();
     if(v) localStorage.setItem("yhc_"+k,v);
   });
   alert("Settings saved. Reload the page to apply changes.");
 };
+window.sendTestEmail = async () => {
+  const result = document.getElementById("testEmailResult");
+  // Pick up freshly typed values OR stored values
+  const apiKey  = document.getElementById("cfg_brevo_key")?.value?.trim()    || localStorage.getItem("yhc_brevo_key")||"";
+  const sender  = document.getElementById("cfg_brevo_sender")?.value?.trim() || localStorage.getItem("yhc_brevo_sender")||"";
+  if (!apiKey) {
+    if(result) result.innerHTML='<span style="color:var(--gold)">⚠ Enter your Brevo API key first, then click Send Test Email.</span>';
+    return;
+  }
+  if (!sender) {
+    if(result) result.innerHTML='<span style="color:var(--gold)">⚠ Enter your verified Sender Email first.</span>';
+    return;
+  }
+  // Temporarily store so sendEmailViaBrevo can read them
+  const _prev_key    = localStorage.getItem("yhc_brevo_key");
+  const _prev_sender = localStorage.getItem("yhc_brevo_sender");
+  localStorage.setItem("yhc_brevo_key", apiKey);
+  localStorage.setItem("yhc_brevo_sender", sender);
+
+  if(result) result.innerHTML='<span style="color:var(--muted)">Sending test email…</span>';
+  let toEmail = window._currentUserEmail || prompt("Send test to which email?","younghorizonchess@gmail.com");
+  if (!toEmail) { localStorage.setItem("yhc_brevo_key",_prev_key||""); localStorage.setItem("yhc_brevo_sender",_prev_sender||""); return; }
+  try {
+    await sendEmailViaBrevo(toEmail, "Camp Admin", "✅ Young Horizon Chess — Email Test",
+      "This is a test email from the Young Horizon Chess Camp Tracker.\n\nIf you received this, Brevo is working correctly and you can send parent emails from the Comms tab.\n\nCamp dates: July 13–24, 2026.");
+    if(result) result.innerHTML='<span style="color:var(--green,#27ae60)">✅ Test email sent to '+toEmail+'. Check your inbox (and spam folder).</span>';
+    addLog("✉️ Test email sent to "+toEmail);
+  } catch(e) {
+    console.error("Test email error:",e);
+    const msg = e.message||"Unknown error";
+    const hint = msg.includes("no_key") ? " — Enter your Brevo API key."
+               : msg.includes("no_sender") ? " — Enter your verified sender email."
+               : msg.includes("401") ? " — API key is invalid. Double-check it in your Brevo dashboard."
+               : msg.includes("403") ? " — Sender email not verified in Brevo. Verify it first."
+               : "";
+    if(result) result.innerHTML='<span style="color:var(--red,#c0392b)">❌ '+msg+hint+'</span>';
+  }
+};
 window.clearSettings = () => {
   if (!confirm("Clear all saved config and reload?")) return;
   ["apiKey","authDomain","projectId","storageBucket","messagingSenderId","appId",
-   "ejs_service","ejs_template","ejs_pubkey"].forEach(k=>localStorage.removeItem("yhc_"+k));
+   "brevo_key","brevo_sender"].forEach(k=>localStorage.removeItem("yhc_"+k));
   location.reload();
 };
 
@@ -596,7 +820,7 @@ window.saveSetupConfig = () => {
   const fields={
     apiKey:"setup_apiKey", authDomain:"setup_authDomain", projectId:"setup_projectId",
     storageBucket:"setup_storageBucket", messagingSenderId:"setup_messagingSenderId", appId:"setup_appId",
-    ejs_service:"setup_ejs_service", ejs_template:"setup_ejs_template", ejs_pubkey:"setup_ejs_pubkey"
+    brevo_key:"setup_brevo_key", brevo_sender:"setup_brevo_sender"
   };
   Object.entries(fields).forEach(([k,elId])=>{
     const v=document.getElementById(elId)?.value?.trim();
@@ -608,7 +832,7 @@ window.saveSetupConfig = () => {
 </script>
 
 <!-- External libs (CDN) -->
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<!-- Brevo API used directly via fetch() — no extra script needed -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
@@ -805,17 +1029,16 @@ ol{padding-left:1.2rem;line-height:1.9;font-size:13px;color:var(--text)}
   </div>
 
   <div class="setup-section">
-    <h3><span class="step">3</span>EmailJS — optional (for parent emails)</h3>
+    <h3><span class="step">3</span>Brevo — for sending parent emails (free)</h3>
     <ol>
-      <li>Go to <a href="https://www.emailjs.com" target="_blank">emailjs.com</a> → create a free account</li>
-      <li>Add an Email Service (Gmail recommended)</li>
-      <li>Create a Template with variables: <code>{{to_email}}</code> <code>{{to_name}}</code> <code>{{subject}}</code> <code>{{message}}</code></li>
-      <li>Copy your Service ID, Template ID, and Public Key below</li>
+      <li>Go to <a href="https://www.brevo.com" target="_blank">brevo.com</a> → create a free account (300 emails/day free)</li>
+      <li>Go to <strong>SMTP &amp; API → API Keys</strong> → click <strong>Generate a new API key</strong> → copy it</li>
+      <li>Go to <strong>Senders &amp; IP → Senders</strong> → add and verify the email address you'll send from</li>
+      <li>Paste the API key and your sender email below</li>
     </ol>
     <div class="form-row" style="margin-top:.5rem">
-      <div class="fg"><label>Service ID</label><input id="setup_ejs_service" placeholder="service_xxxxx"></div>
-      <div class="fg"><label>Template ID</label><input id="setup_ejs_template" placeholder="template_xxxxx"></div>
-      <div class="fg"><label>Public Key</label><input id="setup_ejs_pubkey" placeholder="your_public_key"></div>
+      <div class="fg"><label>Brevo API Key</label><input id="setup_brevo_key" type="password" placeholder="xkeysib-…"></div>
+      <div class="fg"><label>Verified Sender Email</label><input id="setup_brevo_sender" type="email" placeholder="younghorizonchess@gmail.com"></div>
     </div>
   </div>
 
@@ -944,6 +1167,7 @@ ol{padding-left:1.2rem;line-height:1.9;font-size:13px;color:var(--text)}
             <div class="fg"><label>Template</label>
               <select id="commTemplate" onchange="loadTemplate()" style="padding:.48rem .7rem;border:1.5px solid var(--border);border-radius:6px;font-size:13px">
                 <option value="">— Pick a template —</option>
+                <option value="precamp">📬 Pre-Camp Welcome + What to Bring</option>
                 <option value="welcome">Welcome Email</option>
                 <option value="reminder">Camp Reminder</option>
                 <option value="pickup">Pick-Up Reminder</option>
@@ -960,8 +1184,10 @@ ol{padding-left:1.2rem;line-height:1.9;font-size:13px;color:var(--text)}
             </div>
             <div style="display:flex;gap:.65rem;align-items:center;flex-wrap:wrap">
               <button class="btn-primary" onclick="sendEmails()">📤 Send Email</button>
-              <span id="commStatus" style="font-size:13px;color:var(--green)"></span>
+              <button class="btn-secondary" onclick="openMailto()" title="Opens your computer's email app with this message pre-filled — works without EmailJS">📨 Open in Mail App</button>
+              <span id="commStatus" style="font-size:13px"></span>
             </div>
+            <p style="font-size:11px;color:var(--muted);margin-top:.5rem">Emails sent via <strong>Brevo</strong> (configure in ⚙️ Settings). No Brevo key? Use <strong>Open in Mail App</strong> as a fallback — it pre-fills everything in your email client.</p>
           </div>
         </div>
       </div>
@@ -1026,17 +1252,23 @@ Bob Jones, 11, Intermediate (Ages 9-10), bob@example.com, 780-555-5678"></textar
         </div>
       </div>
       <div class="card">
-        <div class="card-title">EmailJS Configuration</div>
+        <div class="card-title">Brevo Email Configuration</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">
+          Sign up free at <a href="https://www.brevo.com" target="_blank" style="color:var(--gold)">brevo.com</a> →
+          Go to <strong>SMTP &amp; API → API Keys</strong> → create a key and paste it below.
+          Then verify your sender email under <strong>Senders &amp; IP → Senders</strong>.
+        </p>
         <div class="form-row">
-          <div class="fg"><label>Service ID</label><input id="cfg_ejs_service" placeholder="service_xxxxx"></div>
-          <div class="fg"><label>Template ID</label><input id="cfg_ejs_template" placeholder="template_xxxxx"></div>
-          <div class="fg"><label>Public Key</label><input id="cfg_ejs_pubkey" placeholder="your_public_key"></div>
+          <div class="fg"><label>Brevo API Key</label><input id="cfg_brevo_key" type="password" placeholder="xkeysib-…"></div>
+          <div class="fg"><label>Verified Sender Email</label><input id="cfg_brevo_sender" type="email" placeholder="younghorizonchess@gmail.com"></div>
         </div>
       </div>
-      <div style="display:flex;gap:.65rem;flex-wrap:wrap">
+      <div style="display:flex;gap:.65rem;flex-wrap:wrap;align-items:center">
         <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+        <button class="btn-secondary" onclick="sendTestEmail()">✉️ Send Test Email</button>
         <button class="btn-sm danger" onclick="clearSettings()">Reset All Config</button>
       </div>
+      <div id="testEmailResult" style="font-size:12px;margin-top:.5rem"></div>
     </div>
 
   </div><!-- /main -->
@@ -1087,7 +1319,7 @@ window.addEventListener("DOMContentLoaded", () => {
   ["apiKey","authDomain","projectId","storageBucket","messagingSenderId","appId"].forEach(k=>{
     const el=document.getElementById("cfg_"+k); if(el) el.value=localStorage.getItem("yhc_"+k)||"";
   });
-  ["ejs_service","ejs_template","ejs_pubkey"].forEach(k=>{
+  ["brevo_key","brevo_sender"].forEach(k=>{
     const el=document.getElementById("cfg_"+k); if(el) el.value=localStorage.getItem("yhc_"+k)||"";
   });
 });
