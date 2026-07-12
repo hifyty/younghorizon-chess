@@ -414,7 +414,7 @@ We are so excited to welcome {name} to the Young Horizon Chess Summer Boot Camp 
 CAMP DETAILS
 Dates: Monday, July 13 – Thursday, July 24, 2026 (weekdays only)
 Location: River West Christian Church, 11245 – 165 Ave NW, Edmonton, AB
-Drop-off: 8:45 AM | Pick-up: 2:45 PM (no later than 3:30 PM)
+Drop-off: 8:45 AM | Camp Hours: 9:00 AM – 3:00 PM | Pick-up: no later than 3:15 PM (all campers must be off-site by 3:30 PM)
 Lead Instructor: Ife Akinpelu | Phone: 437-216-3282
 
 WHAT TO BRING EACH DAY
@@ -434,7 +434,7 @@ PLEASE NOTE
 - In case of emergency, we will contact you at the phone number on file.
 
 WHAT TO EXPECT ON DAY 1
-{name} will receive their Camp Passport, name tag, and be placed in a skill group (Rooks or Queens). The morning starts with a fun icebreaker and the first chess lesson. There will be time for guided play in the afternoon.
+{name} will receive their Camp Passport, name tag, and be placed in the Beginner or Intermediate group. The morning starts with a fun icebreaker and the first chess lesson. There will be time for guided play in the afternoon.
 
 We are looking forward to an incredible two weeks! If you have any questions before Monday, please don't hesitate to reach out.
 
@@ -447,7 +447,7 @@ younghorizonchess.ca | 437-216-3282` },
 
 Welcome! We're thrilled to have {name} joining us for the Young Horizon Chess Summer Boot Camp (July 13–24, 2026).
 
-Camp runs 8:45 AM – 2:45 PM daily at River West Christian Church, Edmonton.
+Camp runs 9:00 AM – 3:00 PM daily (drop-off from 8:45 AM, pick-up no later than 3:15 PM) at River West Christian Church, Edmonton.
 
 If you have any questions, reply to this email or call us at 437-216-3282.
 
@@ -459,7 +459,7 @@ younghorizonchess.ca` },
 
   reminder:   { sub:"Reminder: Camp Tomorrow — Young Horizon Chess", body:`Hi {parentName},
 
-Just a reminder that camp runs tomorrow (8:45 AM – 2:45 PM) at River West Christian Church.
+Just a reminder that camp runs tomorrow — drop-off 8:45 AM, pick-up no later than 3:15 PM (all campers must be off-site by 3:30 PM) — at River West Christian Church.
 
 {name} is in the {group} group. Please remember to bring a water bottle, nut-free snack, and packed lunch.
 
@@ -469,11 +469,11 @@ Young Horizon Chess | 437-216-3282` },
 
   pickup:     { sub:"Pick-Up Reminder — Young Horizon Chess", body:`Hi {parentName},
 
-This is a reminder that pick-up for {name} is at 2:45 PM today at the main entrance of River West Christian Church.
+This is a reminder that pick-up for {name} is no later than 3:15 PM today at the main entrance of River West Christian Church.
 
 Authorized pickup: {pickup}
 
-Please arrive by 3:30 PM at the latest. Thank you!
+Please note: all campers must be off-site by 3:30 PM at the absolute latest. Thank you!
 
 Young Horizon Chess | 437-216-3282` },
 
@@ -629,6 +629,143 @@ window.generateCert = (studentId) => {
   addLog("🏆 Certificate generated: "+s.name+" — "+CERT_TITLES[type]);
 };
 window.generateAllCerts = () => Object.keys(students).forEach(id=>generateCert(id));
+
+// ── ID CARD GENERATOR ────────────────────────────────────────────────────────
+window.generateIDCards = () => {
+  const ids = Object.keys(students);
+  if (!ids.length) { alert("No students yet. Add them in the Roster tab."); return; }
+
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF({orientation:"portrait", unit:"pt", format:"letter"});
+
+  // ── Layout constants ───────────────────────────────────────────────────────
+  const PAGE_W = 612, PAGE_H = 792;
+  const MARGIN  = 36;                   // 0.5"
+  const CARD_W  = 252;                  // 3.5"
+  const CARD_H  = 153;                  // 2.125" (standard ID)
+  const COLS    = 2, ROWS = 4;
+  const GAP_X   = (PAGE_W - MARGIN*2 - COLS*CARD_W) / (COLS-1);  // 36pt
+  const GAP_Y   = (PAGE_H - MARGIN*2 - ROWS*CARD_H) / (ROWS-1);  // 36pt
+
+  // ── Brand colours ──────────────────────────────────────────────────────────
+  const NAVY="#1a2744", GOLD="#c9a84c", CREAM="#fdf6e3", LT="#e8edf5";
+
+  let cardIdx = 0;
+
+  ids.forEach((id, i) => {
+    if (i > 0 && cardIdx >= COLS*ROWS) { doc.addPage(); cardIdx = 0; }
+
+    const s   = students[id];
+    const col = cardIdx % COLS;
+    const row = Math.floor(cardIdx / COLS);
+    const x   = MARGIN + col*(CARD_W + GAP_X);
+    const y   = MARGIN + row*(CARD_H + GAP_Y);
+
+    // ── Card base ───────────────────────────────────────────────────────────
+    doc.setFillColor(CREAM);
+    doc.roundedRect(x, y, CARD_W, CARD_H, 4, 4, "F");
+
+    // Outer border (navy)
+    doc.setDrawColor(NAVY); doc.setLineWidth(1.5);
+    doc.roundedRect(x, y, CARD_W, CARD_H, 4, 4);
+
+    // Inner gold border
+    doc.setDrawColor(GOLD); doc.setLineWidth(0.5);
+    doc.roundedRect(x+3, y+3, CARD_W-6, CARD_H-6, 3, 3);
+
+    // ── Header bar ──────────────────────────────────────────────────────────
+    doc.setFillColor(NAVY);
+    // Manually draw rounded top + square bottom for the header bar
+    doc.rect(x+1.5, y+4, CARD_W-3, 32, "F");      // body of header
+    doc.roundedRect(x, y, CARD_W, 36, 4, 4, "F"); // rounded top
+
+    // Gold accent line under header
+    doc.setFillColor(GOLD); doc.rect(x, y+36, CARD_W, 3, "F");
+
+    // Header text
+    doc.setTextColor(GOLD); doc.setFontSize(8.5); doc.setFont("helvetica","bold");
+    doc.text("♟  YOUNG HORIZON CHESS", x + CARD_W/2, y+15, {align:"center"});
+    doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont("helvetica","normal");
+    doc.text("SUMMER BOOT CAMP 2026", x + CARD_W/2, y+28, {align:"center"});
+
+    // ── Photo placeholder ───────────────────────────────────────────────────
+    const PX=x+10, PY=y+46, PW=56, PH=70;
+    doc.setFillColor(LT); doc.setDrawColor(NAVY); doc.setLineWidth(0.75);
+    doc.rect(PX, PY, PW, PH, "FD");
+    doc.setTextColor("#aaaaaa"); doc.setFontSize(6.5);
+    doc.text("PHOTO", PX+PW/2, PY+PH/2+2, {align:"center"});
+
+    // ── Camper info (right of photo) ────────────────────────────────────────
+    const TX = PX+PW+10;
+    const TW = CARD_W - PW - 30;
+
+    // Name — shrink if long
+    doc.setTextColor(NAVY); doc.setFont("helvetica","bold");
+    const nameSize = doc.getStringUnitWidth(s.name)*11 > TW ? 9 : 11;
+    doc.setFontSize(nameSize);
+    const nameLines = doc.splitTextToSize(s.name, TW);
+    doc.text(nameLines[0], TX, y+60);
+    if (nameLines[1]) doc.text(nameLines[1], TX, y+71);
+
+    const afterName = nameLines[1] ? y+83 : y+74;
+
+    // Group chip
+    if (s.group) {
+      doc.setFontSize(7.5); doc.setFont("helvetica","normal");
+      doc.setTextColor("#444444");
+      doc.text(s.group, TX, afterName);
+    }
+
+    // Age
+    if (s.age) {
+      doc.setFontSize(7); doc.setTextColor("#666666");
+      doc.text("Age: "+s.age, TX, afterName+12);
+    }
+
+    // CAMPER label (top-right of card)
+    doc.setFontSize(6); doc.setFont("helvetica","bold");
+    doc.setTextColor(GOLD);
+    doc.text("CAMPER", x+CARD_W-12, y+56, {align:"right"});
+
+    // ── Divider ─────────────────────────────────────────────────────────────
+    doc.setDrawColor(GOLD); doc.setLineWidth(0.5);
+    doc.line(x+8, y+CARD_H-30, x+CARD_W-8, y+CARD_H-30);
+
+    // ── Emergency contact ───────────────────────────────────────────────────
+    doc.setFont("helvetica","normal"); doc.setFontSize(6.5);
+    doc.setTextColor("#333333");
+    const emerg = s.emergName
+      ? "Emergency: "+s.emergName+(s.emergPhone ? "  "+s.emergPhone : "")
+      : (s.phone ? "Parent: "+s.phone : "");
+    if (emerg) doc.text(emerg, x+CARD_W/2, y+CARD_H-17, {align:"center", maxWidth:CARD_W-20});
+
+    // ── Footer dates ────────────────────────────────────────────────────────
+    doc.setFontSize(5.5); doc.setFont("helvetica","bold"); doc.setTextColor(NAVY);
+    doc.text("July 13–24, 2026  ·  River West Christian Church, Edmonton",
+             x+CARD_W/2, y+CARD_H-7, {align:"center"});
+
+    // ── Cut guide (dashed) ──────────────────────────────────────────────────
+    doc.setDrawColor("#cccccc"); doc.setLineWidth(0.3);
+    // horizontal cut lines
+    if (row < ROWS-1) {
+      const cutY = y+CARD_H+GAP_Y/2;
+      doc.setLineDashPattern([3,3],0);
+      doc.line(MARGIN-8, cutY, PAGE_W-MARGIN+8, cutY);
+    }
+    // vertical cut lines
+    if (col < COLS-1) {
+      const cutX = x+CARD_W+GAP_X/2;
+      doc.setLineDashPattern([3,3],0);
+      doc.line(cutX, MARGIN-8, cutX, PAGE_H-MARGIN+8);
+    }
+    doc.setLineDashPattern([],0); // reset dash
+
+    cardIdx++;
+  });
+
+  doc.save("YHC_ID_Cards.pdf");
+  addLog("🪪 ID cards generated for "+ids.length+" camper(s)");
+};
 
 // ── Email a certificate announcement to a student's parent ──────────────────
 window.emailCert = async (studentId) => {
@@ -1198,6 +1335,15 @@ ol{padding-left:1.2rem;line-height:1.9;font-size:13px;color:var(--text)}
       <div class="card">
         <div class="card-title">Generate &amp; Download Certificates</div>
         <div id="certList"><p class="muted">Loading…</p></div>
+      </div>
+      <div class="card" style="margin-top:1rem">
+        <div class="card-title">🪪 Camper ID Cards</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">
+          Generates a PDF with 8 ID cards per page — one per registered camper. Print on cardstock and laminate.
+          Cards include name, group, age, photo placeholder, emergency contact, and camp dates.
+          Dashed cut lines are included.
+        </p>
+        <button class="btn-primary" onclick="generateIDCards()">🪪 Download ID Cards PDF</button>
       </div>
     </div>
 
