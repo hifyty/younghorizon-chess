@@ -407,14 +407,56 @@ function renderLog() {
 // COMMS TAB
 // ─────────────────────────────────────────────────────────────────────────────
 const TEMPLATES = {
+  week1recap: { sub:"Week 1 Recap — Young Horizon Chess Boot Camp 2026", body:`Hi {parentName},
+
+What an incredible first week! We are so proud of everything {name} accomplished in the {group} group this week, and we wanted to share a full recap before we head into Week 2.
+
+---
+
+WEEK 1 IN REVIEW (July 13–17, 2026)
+
+DAY 1 — MONDAY, JULY 13: Welcome & The 4 Opening Principles
+We kicked off camp with our Welcome Circle, passport distribution, and skill group placements. The very first lesson focused on the 4 Opening Principles — the foundation of every great chess game: control the center, develop your pieces, castle early, and never move the same piece twice without a reason. Campers played their first games and earned their first passport stamps of camp!
+
+DAY 2 — TUESDAY, JULY 14: The Italian Game
+We brought the 4 principles to life with the Italian Game (1.e4 e5, Nf3 Nc6, Bc4) — one of the oldest and most instructive chess openings in history. Every move illustrated a principle. Campers practiced setting up the Italian position and played games aiming to reach it by move 3.
+
+DAY 3 — WEDNESDAY, JULY 15: Scholar's Mate — The Trick & The Counter
+The fan favourite of the week! We learned the Scholar's Mate — the fastest checkmate in the game — and more importantly, how to defend against it. Campers who could demonstrate the defense earned a special passport stamp. This was a great reminder that knowing why a trick works makes you a stronger player.
+
+DAY 4 — THURSDAY, JULY 16: Guided Practice & Tactics
+Campers put their new knowledge to work in extended guided practice games. We focused on recognizing when opening principles are being followed — and when they are being broken. The Floater and I circulated the room asking each player: "What is your plan?" A great habit that stronger players always have.
+
+DAY 5 — FRIDAY, JULY 17: Week 1 Mini-Tournament
+We wrapped the week with a 4-round mini-tournament! Campers were paired by skill level and competed for the first time under official camp tournament rules. Results have been recorded and will count toward the Grand Tournament on Day 10. Every camper showed tremendous heart and sportsmanship today — we are genuinely impressed.
+
+---
+
+CHESS TIP OF THE WEEK:
+"Before every move, ask yourself three questions: Does this control the center? Does this develop a piece? Does this keep my king safe? If the answer to all three is no — look for a better move."
+
+---
+
+WHAT IS COMING IN WEEK 2 (July 20–24)?
+Week 2 is where we go deeper — tactics, endgames, and our Grand Championship Tournament on the final day (July 24). On Day 10 we will crown the camp chess tournament winner and email every camper their Certificate of Completion directly to you. Keep an eye on your inbox on July 24!
+
+Drop-off remains at 8:45 AM each day. Please remind {name} to bring their Camp Passport — stamps are still being awarded!
+
+Thank you for an amazing Week 1. See you Monday!
+
+Warm regards,
+Ife Akinpelu
+Lead Instructor — Young Horizon Chess
+younghorizonchess.ca | 437-216-3282` },
+
   precamp:    { sub:"Welcome to Young Horizon Chess Boot Camp 2026 — What to Bring", body:`Hi {parentName},
 
 We are so excited to welcome {name} to the Young Horizon Chess Summer Boot Camp 2026! Camp starts this Monday, July 13, and we want to make sure you and your child are fully prepared.
 
 CAMP DETAILS
 Dates: Monday, July 13 – Thursday, July 24, 2026 (weekdays only)
-Location: River West Christian Church, 19815 45th Ave NW, Edmonton, AB T6M 0M4
-Drop-off: 8:45 AM | Camp Hours: 9:00 AM – 3:00 PM | Pick-up: no later than 3:15 PM (all campers must be off-site by 3:30 PM)
+Location: River West Christian Church, 11245 – 165 Ave NW, Edmonton, AB
+Drop-off: 8:45 AM | Pick-up: 2:45 PM (no later than 3:30 PM)
 Lead Instructor: Ife Akinpelu | Phone: 437-216-3282
 
 WHAT TO BRING EACH DAY
@@ -434,7 +476,7 @@ PLEASE NOTE
 - In case of emergency, we will contact you at the phone number on file.
 
 WHAT TO EXPECT ON DAY 1
-{name} will receive their Camp Passport, name tag, and be placed in the Beginner or Intermediate group. The morning starts with a fun icebreaker and the first chess lesson. There will be time for guided play in the afternoon.
+{name} will receive their Camp Passport, name tag, and be placed in a skill group (Rooks or Queens). The morning starts with a fun icebreaker and the first chess lesson. There will be time for guided play in the afternoon.
 
 We are looking forward to an incredible two weeks! If you have any questions before Monday, please don't hesitate to reach out.
 
@@ -447,7 +489,7 @@ younghorizonchess.ca | 437-216-3282` },
 
 Welcome! We're thrilled to have {name} joining us for the Young Horizon Chess Summer Boot Camp (July 13–24, 2026).
 
-Camp runs 9:00 AM – 3:00 PM daily (drop-off from 8:45 AM, pick-up no later than 3:15 PM) at River West Christian Church, Edmonton.
+Camp runs 8:45 AM – 2:45 PM daily at River West Christian Church, Edmonton.
 
 If you have any questions, reply to this email or call us at 437-216-3282.
 
@@ -459,7 +501,7 @@ younghorizonchess.ca` },
 
   reminder:   { sub:"Reminder: Camp Tomorrow — Young Horizon Chess", body:`Hi {parentName},
 
-Just a reminder that camp runs tomorrow — drop-off 8:45 AM, pick-up no later than 3:15 PM (all campers must be off-site by 3:30 PM) — at River West Christian Church.
+Just a reminder that camp runs tomorrow (8:45 AM – 2:45 PM) at River West Christian Church.
 
 {name} is in the {group} group. Please remember to bring a water bottle, nut-free snack, and packed lunch.
 
@@ -469,11 +511,11 @@ Young Horizon Chess | 437-216-3282` },
 
   pickup:     { sub:"Pick-Up Reminder — Young Horizon Chess", body:`Hi {parentName},
 
-This is a reminder that pick-up for {name} is no later than 3:15 PM today at the main entrance of River West Christian Church.
+This is a reminder that pick-up for {name} is at 2:45 PM today at the main entrance of River West Christian Church.
 
 Authorized pickup: {pickup}
 
-Please note: all campers must be off-site by 3:30 PM at the absolute latest. Thank you!
+Please arrive by 3:30 PM at the latest. Thank you!
 
 Young Horizon Chess | 437-216-3282` },
 
@@ -484,23 +526,6 @@ Great news! {name} earned a new achievement badge today at Young Horizon Chess B
 Keep encouraging them — great things are happening on the chess board.
 
 Young Horizon Chess Team
-younghorizonchess.ca | 437-216-3282` },
-
-  dayrecap:   { sub:"{name}'s Day at Chess Camp — Recap!", body:`Hi {parentName},
-
-What a great day! {name} is in the {group} group and had a wonderful time today.
-
-TODAY'S LESSON: [FILL IN TODAY'S LESSON TOPIC]
-
-[FILL IN A BRIEF RECAP OF TODAY'S ACTIVITIES — icebreaker, puzzles, games, etc.]
-
-CHESS TIP OF THE DAY: "[FILL IN TODAY'S CHESS TIP]"
-
-Thanks for sharing {name} with us today — see you tomorrow at 8:45 AM!
-
-Warm regards,
-Ife Akinpelu
-Lead Instructor — Young Horizon Chess
 younghorizonchess.ca | 437-216-3282` },
 
   custom:     { sub:"", body:"" },
@@ -1321,12 +1346,12 @@ ol{padding-left:1.2rem;line-height:1.9;font-size:13px;color:var(--text)}
             <div class="fg"><label>Template</label>
               <select id="commTemplate" onchange="loadTemplate()" style="padding:.48rem .7rem;border:1.5px solid var(--border);border-radius:6px;font-size:13px">
                 <option value="">— Pick a template —</option>
+                <option value="week1recap">📋 Week 1 Recap (July 13–17)</option>
                 <option value="precamp">📬 Pre-Camp Welcome + What to Bring</option>
                 <option value="welcome">Welcome Email</option>
                 <option value="reminder">Camp Reminder</option>
                 <option value="pickup">Pick-Up Reminder</option>
                 <option value="achievement">Achievement Badge</option>
-                <option value="dayrecap">📋 Day Recap (fill in each day)</option>
                 <option value="custom">Custom</option>
               </select>
             </div>
