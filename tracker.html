@@ -407,6 +407,72 @@ function renderLog() {
 // COMMS TAB
 // ─────────────────────────────────────────────────────────────────────────────
 const TEMPLATES = {
+  interestcheck: { sub:"Quick question about {name} — Young Horizon Chess", body:`Hi {parentName},
+
+We hope {name} is having an amazing week — we only have two days left and we cannot believe how much they have grown!
+
+We are planning to launch weekly live online chess classes starting in September, and boot camp families get first access before we open to the public. We wanted to check in before Friday: would {name} be interested in continuing with online classes after camp?
+
+Just reply to this email with a quick YES, MAYBE, or NOT AT THIS TIME — no commitment at all. We will send full details (schedule, pricing, and how it works) with the certificates on Friday.
+
+Thank you for an incredible two weeks!
+
+Ife Akinpelu
+Young Horizon Chess
+437-216-3282 | younghorizonchess.ca` },
+
+  onlinepitch: { sub:"What's next for {name}? Join Young Horizon Chess Online Classes", body:`Hi {parentName},
+
+Two weeks ago {name} walked into Young Horizon Chess Boot Camp. Today they walked out a chess player — and we could not be more proud of everything they accomplished.
+
+We are writing because we do not want the momentum to stop.
+
+---
+
+INTRODUCING: YOUNG HORIZON CHESS ONLINE CLASSES
+
+Starting September 2026, we are launching weekly live online chess classes via Zoom — and we want {name} to be one of our founding students.
+
+Because you joined us for the very first Young Horizon Chess Boot Camp, {name} is guaranteed a spot at our Founding Family rate before we open enrollment to the public.
+
+WHAT IS INCLUDED:
+- Weekly 45-minute live Zoom class every week
+- Taught by Ife Akinpelu — the same instructor from boot camp
+- Skill-matched group (based on {name}'s {group} group placement from camp)
+- Monthly puzzle homework + optional parent progress update
+- Access to all recorded lessons for the month
+
+TWO TRACKS AVAILABLE:
+- Rooks Track — Beginner/developing players (perfect for {group} group graduates at the beginner level)
+- Queens Track — Intermediate players ready for tactics and strategy
+
+FOUNDING FAMILY PRICING (Camp Alumni Only):
+$69/month — 4 live classes per month
+(Regular price when we open publicly: $89/month)
+
+Classes start the week of September 7, 2026.
+Maximum 8 students per group — spots will go fast.
+
+---
+
+HOW TO ENROLL:
+Reply to this email and let us know {name} is in. We will confirm the track, send you the Zoom link, and lock in your founding family rate before we open publicly.
+
+Or register directly at: younghorizonchess.ca/classes
+
+Questions? Call or text: 437-216-3282
+
+---
+
+It has been an absolute honour teaching {name} this summer. Whatever path they take from here, they now carry the chess mindset with them — think ahead, stay calm, and always have a plan.
+
+Thank you for being part of Year One.
+
+Warm regards,
+Ife Akinpelu
+Lead Instructor & Founder — Young Horizon Chess
+younghorizonchess.ca | 437-216-3282 | support@younghorizonchess.ca` },
+
   week1recap: { sub:"Week 1 Recap — Young Horizon Chess Boot Camp 2026", body:`Hi {parentName},
 
 What an incredible first week! We are so proud of everything {name} accomplished in the {group} group this week, and we wanted to share a full recap before we head into Week 2.
@@ -1346,6 +1412,8 @@ ol{padding-left:1.2rem;line-height:1.9;font-size:13px;color:var(--text)}
             <div class="fg"><label>Template</label>
               <select id="commTemplate" onchange="loadTemplate()" style="padding:.48rem .7rem;border:1.5px solid var(--border);border-radius:6px;font-size:13px">
                 <option value="">— Pick a template —</option>
+                <option value="interestcheck">📣 Interest Check (Send Today — Day 8)</option>
+                <option value="onlinepitch">🌐 Online Classes Pitch (Post-Camp)</option>
                 <option value="week1recap">📋 Week 1 Recap (July 13–17)</option>
                 <option value="precamp">📬 Pre-Camp Welcome + What to Bring</option>
                 <option value="welcome">Welcome Email</option>
