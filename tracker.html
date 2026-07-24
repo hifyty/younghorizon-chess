@@ -706,24 +706,29 @@ window.generateCert = (studentId) => {
   doc.text("Summer Boot Camp 2026  ·  July 13–24  ·  Edmonton, AB", W/2, 68, {align:"center"});
   // Title
   doc.setTextColor("#1a2744"); doc.setFontSize(26); doc.setFont("helvetica","bold");
-  doc.text(CERT_TITLES[type]||"Certificate", W/2, 138, {align:"center"});
+  doc.text(CERT_TITLES[type]||"Certificate", W/2, 170, {align:"center"});
   // Preamble
   doc.setFontSize(14); doc.setFont("helvetica","normal");
-  doc.text("This certifies that", W/2, 168, {align:"center"});
-  // Name
-  doc.setFontSize(34); doc.setFont("helvetica","bold"); doc.setTextColor("#1a2744");
-  doc.text(s.name, W/2, 215, {align:"center"});
+  doc.text("This certifies that", W/2, 207, {align:"center"});
+  // Name — auto-scale font so long names never overflow
+  let nameFontSize=36;
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(nameFontSize);
+  const maxNameW = W-160;
+  while(doc.getTextWidth(s.name)>maxNameW && nameFontSize>18){ nameFontSize-=2; doc.setFontSize(nameFontSize); }
+  doc.setTextColor("#1a2744");
+  doc.text(s.name, W/2, 262, {align:"center"});
   const nw=doc.getTextWidth(s.name);
   doc.setDrawColor("#c9a84c"); doc.setLineWidth(2);
-  doc.line(W/2-nw/2, 222, W/2+nw/2, 222);
+  doc.line(W/2-nw/2, 271, W/2+nw/2, 271);
   // Body text
   doc.setFontSize(12); doc.setFont("helvetica","normal"); doc.setTextColor("#333333");
-  (CERT_MSGS[type]||"").split("\n").forEach((l,i)=>doc.text(l,W/2,252+i*20,{align:"center"}));
+  (CERT_MSGS[type]||"").split("\n").forEach((l,i)=>doc.text(l,W/2,308+i*22,{align:"center"}));
   // Date
-  doc.setFontSize(11); doc.setTextColor("#1a2744");
-  doc.text("July 24, 2026", W/2, 310, {align:"center"});
+  doc.setFontSize(11); doc.setFont("helvetica","normal"); doc.setTextColor("#1a2744");
+  doc.text("July 24, 2026", W/2, 378, {align:"center"});
   // Signature lines
-  const sy=H-85;
+  const sy=H-95;
   doc.setDrawColor("#1a2744"); doc.setLineWidth(1);
   doc.line(70,sy,270,sy); doc.line(W-270,sy,W-70,sy);
   doc.setFontSize(9); doc.setTextColor("#555555");
