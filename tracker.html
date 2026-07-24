@@ -729,27 +729,25 @@ window.generateCert = (studentId) => {
   // Date
   doc.setFontSize(11); doc.setFont("helvetica","normal"); doc.setTextColor("#1a2744");
   doc.text("July 24, 2026", W/2, 378, {align:"center"});
-  // Signature lines
+  // Signature — single centred block
   const sy=H-95;
   const instrName = localStorage.getItem("yhc_instructor_name") || "Ife Akinpelu";
   const sigImg    = localStorage.getItem("yhc_signature_img") || "";
   doc.setDrawColor("#1a2744"); doc.setLineWidth(1);
-  doc.line(70,sy,270,sy); doc.line(W-270,sy,W-70,sy);
+  doc.line(W/2-120, sy, W/2+120, sy); // single 240pt line
   if (sigImg) {
-    // Render uploaded signature image above each line (centred, 40pt tall, up to 140pt wide)
     try {
-      doc.addImage(sigImg,"PNG", 170-70, sy-50, 140, 40);
-      doc.addImage(sigImg,"PNG", W-170-70, sy-50, 140, 40);
-    } catch(e) { /* fall back to text if image corrupt */ }
+      // Centred signature image, 210pt wide × 68pt tall
+      doc.addImage(sigImg,"PNG", W/2-105, sy-75, 210, 68);
+    } catch(e) { /* fall back to text */ }
   } else {
-    // Italic bold fallback — looks more signature-like than upright text
-    doc.setFontSize(13); doc.setFont("helvetica","bolditalic"); doc.setTextColor("#1a2744");
-    doc.text(instrName, 170, sy-10, {align:"center"});
-    doc.text(instrName, W-170, sy-10, {align:"center"});
+    doc.setFontSize(14); doc.setFont("helvetica","bolditalic"); doc.setTextColor("#1a2744");
+    doc.text(instrName, W/2, sy-14, {align:"center"});
   }
-  doc.setFontSize(9); doc.setFont("helvetica","normal"); doc.setTextColor("#555555");
-  doc.text("Lead Instructor",170,sy+14,{align:"center"});
-  doc.text("Young Horizon Chess Director",W-170,sy+14,{align:"center"});
+  doc.setFontSize(9); doc.setFont("helvetica","bold"); doc.setTextColor("#1a2744");
+  doc.text(instrName.toUpperCase(), W/2, sy+14, {align:"center"});
+  doc.setFontSize(8); doc.setFont("helvetica","normal"); doc.setTextColor("#555555");
+  doc.text("Young Horizon Chess Director", W/2, sy+26, {align:"center"});
   // Footer bar
   doc.setFillColor("#1a2744"); doc.rect(0,H-32,W,32,"F");
   doc.setTextColor("#c9a84c"); doc.setFontSize(9);
