@@ -675,15 +675,17 @@ window.openMailto = () => {
 // CERTS TAB
 // ─────────────────────────────────────────────────────────────────────────────
 const CERT_TITLES = {
-  completion:"Certificate of Completion", champion:"Camp Champion Award",
-  puzzle:"Puzzle Master Award", improved:"Most Improved Player", sport:"Sportsmanship Award"
+  completion:"Certificate of Completion", champion:"Grand Tournament Champion",
+  puzzle:"Puzzle Master Award", improved:"Most Improved Player", sport:"Sportsmanship Award",
+  staff:"Certificate of Volunteer Service"
 };
 const CERT_MSGS = {
-  completion:"has successfully completed the Young Horizon Chess Summer Boot Camp\n(July 13–24, 2026) and demonstrated a dedication to chess excellence.",
-  champion:"has demonstrated outstanding chess skill and was named\nCamp Champion of the Young Horizon Chess Summer Boot Camp 2026.",
-  puzzle:"demonstrated exceptional puzzle-solving ability and earned the\nPuzzle Master title at Young Horizon Chess Boot Camp 2026.",
-  improved:"showed remarkable growth and determination throughout\nthe Young Horizon Chess Summer Boot Camp 2026.",
-  sport:"exemplified outstanding sportsmanship, encouraging fellow campers\nthroughout the Young Horizon Chess Summer Boot Camp 2026."
+  completion:"has successfully completed the Young Horizon Chess Summer Boot Camp\n(July 13-24, 2026) and demonstrated a dedication to chess excellence.",
+  champion:"is hereby recognized as the Grand Tournament Champion\nof the Young Horizon Chess Summer Boot Camp 2026.\nAwarded with a $100 cash prize in recognition of outstanding chess achievement.",
+  puzzle:"has an exceptional eye for patterns and tactical thinking.\nAwarded the Puzzle Master title at Young Horizon Chess Boot Camp 2026\nfor outstanding puzzle-solving ability throughout the program.",
+  improved:"showed remarkable dedication and growth over 10 days of training.\nRecognized as the Most Improved Player\nat the Young Horizon Chess Summer Boot Camp 2026.",
+  sport:"exemplified outstanding sportsmanship, encouraging fellow campers\nthroughout the Young Horizon Chess Summer Boot Camp 2026.",
+  staff:"served as a dedicated volunteer staff member\nat the Young Horizon Chess Summer Boot Camp 2026 (July 13-24)\nand contributed meaningfully to the success of the program."
 };
 window.generateCert = (studentId) => {
   const type = document.getElementById("certType")?.value || "completion";
@@ -701,9 +703,9 @@ window.generateCert = (studentId) => {
   doc.setFillColor("#1a2744"); doc.rect(0,0,W,78,"F");
   doc.setFillColor("#c9a84c"); doc.rect(0,78,W,10,"F");
   doc.setTextColor("#c9a84c"); doc.setFontSize(20); doc.setFont("helvetica","bold");
-  doc.text("♟  YOUNG HORIZON CHESS", 40,50);
+  doc.text("YOUNG HORIZON CHESS", 40,50);
   doc.setTextColor(255,255,255); doc.setFontSize(13);
-  doc.text("Summer Boot Camp 2026  ·  July 13–24  ·  Edmonton, AB", W/2, 68, {align:"center"});
+  doc.text("Summer Boot Camp 2026  ·  July 13-24  ·  Edmonton, AB", W/2, 68, {align:"center"});
   // Title
   doc.setTextColor("#1a2744"); doc.setFontSize(26); doc.setFont("helvetica","bold");
   doc.text(CERT_TITLES[type]||"Certificate", W/2, 170, {align:"center"});
@@ -729,11 +731,25 @@ window.generateCert = (studentId) => {
   doc.text("July 24, 2026", W/2, 378, {align:"center"});
   // Signature lines
   const sy=H-95;
+  const instrName = localStorage.getItem("yhc_instructor_name") || "Ife Akinpelu";
+  const sigImg    = localStorage.getItem("yhc_signature_img") || "";
   doc.setDrawColor("#1a2744"); doc.setLineWidth(1);
   doc.line(70,sy,270,sy); doc.line(W-270,sy,W-70,sy);
-  doc.setFontSize(9); doc.setTextColor("#555555");
-  doc.text("Lead Instructor",170,sy+15,{align:"center"});
-  doc.text("Young Horizon Chess Director",W-170,sy+15,{align:"center"});
+  if (sigImg) {
+    // Render uploaded signature image above each line (centred, 40pt tall, up to 140pt wide)
+    try {
+      doc.addImage(sigImg,"PNG", 170-70, sy-50, 140, 40);
+      doc.addImage(sigImg,"PNG", W-170-70, sy-50, 140, 40);
+    } catch(e) { /* fall back to text if image corrupt */ }
+  } else {
+    // Italic bold fallback — looks more signature-like than upright text
+    doc.setFontSize(13); doc.setFont("helvetica","bolditalic"); doc.setTextColor("#1a2744");
+    doc.text(instrName, 170, sy-10, {align:"center"});
+    doc.text(instrName, W-170, sy-10, {align:"center"});
+  }
+  doc.setFontSize(9); doc.setFont("helvetica","normal"); doc.setTextColor("#555555");
+  doc.text("Lead Instructor",170,sy+14,{align:"center"});
+  doc.text("Young Horizon Chess Director",W-170,sy+14,{align:"center"});
   // Footer bar
   doc.setFillColor("#1a2744"); doc.rect(0,H-32,W,32,"F");
   doc.setTextColor("#c9a84c"); doc.setFontSize(9);
@@ -939,10 +955,11 @@ function renderCerts() {
       <label><strong>Certificate Type:</strong></label>
       <select id="certType" class="input-sm">
         <option value="completion">Certificate of Completion</option>
-        <option value="champion">Camp Champion</option>
+        <option value="champion">Grand Tournament Champion ($100)</option>
         <option value="puzzle">Puzzle Master</option>
         <option value="improved">Most Improved</option>
         <option value="sport">Sportsmanship</option>
+        <option value="staff">Volunteer Service (Staff)</option>
       </select>
       <button class="btn-primary" onclick="generateAllCerts()">⬇ Download All</button>
       <button class="btn-secondary" onclick="emailAllCerts()">📧 Email All Parents</button>
@@ -1016,6 +1033,8 @@ window.saveSettings = () => {
     const v=document.getElementById("cfg_"+k)?.value?.trim();
     if(v) localStorage.setItem("yhc_"+k,v);
   });
+  const instrName=document.getElementById("cfg_instructor_name")?.value?.trim();
+  if(instrName) localStorage.setItem("yhc_instructor_name", instrName);
   alert("Settings saved. Reload the page to apply changes.");
 };
 window.sendTestEmail = async () => {
@@ -1059,7 +1078,7 @@ window.sendTestEmail = async () => {
 window.clearSettings = () => {
   if (!confirm("Clear all saved config and reload?")) return;
   ["apiKey","authDomain","projectId","storageBucket","messagingSenderId","appId",
-   "brevo_key","brevo_sender"].forEach(k=>localStorage.removeItem("yhc_"+k));
+   "brevo_key","brevo_sender","instructor_name"].forEach(k=>localStorage.removeItem("yhc_"+k));
   location.reload();
 };
 
@@ -1524,6 +1543,24 @@ Bob Jones, 11, Intermediate (Ages 9-10), bob@example.com, 780-555-5678"></textar
           <div class="fg"><label>Brevo API Key</label><input id="cfg_brevo_key" type="password" placeholder="xkeysib-…"></div>
           <div class="fg"><label>Verified Sender Email</label><input id="cfg_brevo_sender" type="email" placeholder="younghorizonchess@gmail.com"></div>
         </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Certificate Settings</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Your name and signature appear on every certificate.</p>
+        <div class="fg" style="margin-bottom:.65rem"><label>Instructor Name</label><input id="cfg_instructor_name" placeholder="Ife Akinpelu" value="${localStorage.getItem('yhc_instructor_name')||'Ife Akinpelu'}"></div>
+        <div class="fg">
+          <label>Signature Image <span style="font-weight:300;color:var(--muted)">(PNG/JPG — sign on white paper, photo &amp; crop tight)</span></label>
+          <input type="file" id="cfg_sig_file" accept="image/png,image/jpeg" style="font-size:13px;padding:.3rem 0">
+          <div id="sigPreview" style="margin-top:.4rem;font-size:12px;color:var(--muted)">${localStorage.getItem('yhc_signature_img') ? '<span style="color:var(--green,#27ae60)">✓ Signature uploaded</span>' : 'No signature uploaded — italic name used as fallback'}</div>
+        </div>
+        <button class="btn-sm" style="margin-top:.4rem" onclick="
+          const f=document.getElementById('cfg_sig_file').files[0];
+          if(!f){alert('Pick an image file first.');return;}
+          const r=new FileReader();
+          r.onload=e=>{localStorage.setItem('yhc_signature_img',e.target.result);document.getElementById('sigPreview').innerHTML='<span style=&quot;color:var(--green,#27ae60)&quot;>✓ Signature saved — will appear on next cert generated</span>';};
+          r.readAsDataURL(f);
+        ">Upload Signature</button>
+        <button class="btn-sm danger" style="margin-top:.4rem;margin-left:.4rem" onclick="localStorage.removeItem('yhc_signature_img');document.getElementById('sigPreview').textContent='Signature removed.';"> Remove Signature</button>
       </div>
       <div style="display:flex;gap:.65rem;flex-wrap:wrap;align-items:center">
         <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
