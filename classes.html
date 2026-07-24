@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Online Chess Classes | Young Horizon Chess</title>
+<meta name="description" content="Weekly live online chess classes for kids 6-12. Two tracks: Rooks (beginner) and Queens (intermediate). $89/month. Boot camp alumni founding rate $69/month.">
+<link rel="canonical" href="https://younghorizonchess.ca/classes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Mono:wght@400;500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--burg:#6B1A2A;--burg-d:#4A1020;--gold:#C9A84C;--gold-l:#E2C47A;--ivory:#F5F0E8;--ivory-d:#EDE7D9;--cream:#FAF7F2;--ink:#1A1210;--slate:#4A3F3A;--muted:#7A6E68}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Jost',sans-serif;background:var(--cream);color:var(--ink);overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.rv{opacity:0;transform:translateY(20px);transition:opacity .55s,transform .55s}
+.rv.on{opacity:1;transform:none}
+
+/* Nav */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:68px;background:rgba(26,18,16,.95);backdrop-filter:blur(14px);border-bottom:1px solid rgba(201,168,76,.2)}
+.nl{display:flex;align-items:center;gap:12px}
+.nm{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;color:var(--gold);line-height:1.1}
+.nav-sub{font-size:.58rem;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:2px}
+.nv{display:flex;align-items:center;gap:28px}
+.nv a{font-size:.75rem;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.55);transition:color .2s}
+.nv a:hover{color:var(--gold)}
+.nc{background:var(--gold)!important;color:var(--ink)!important;font-weight:700!important;padding:9px 22px!important;border-radius:2px!important}
+.mb{display:none;background:none;border:none;color:var(--gold);font-size:1.5rem;cursor:pointer}
+.mm{display:none;position:fixed;top:68px;left:0;right:0;z-index:199;background:rgba(26,18,16,.98);padding:24px 32px;flex-direction:column;gap:16px;border-bottom:1px solid rgba(201,168,76,.15)}
+.mm.open{display:flex}
+.mm a{color:rgba(255,255,255,.7);font-size:1rem;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+
+/* Hero */
+.hero{min-height:62vh;background:var(--burg-d);display:flex;align-items:center;justify-content:center;text-align:center;padding:120px 48px 72px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background-image:repeating-conic-gradient(rgba(255,255,255,.025) 0% 25%,transparent 0% 50%);background-size:64px 64px}
+.hero-inner{position:relative;z-index:2;max-width:680px}
+.badge{display:inline-block;font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:2.5px;text-transform:uppercase;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.4);color:var(--gold);padding:6px 16px;border-radius:2px;margin-bottom:28px}
+.hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.6rem,6vw,4.6rem);font-weight:700;color:var(--ivory);line-height:1.05;margin-bottom:16px}
+.hero h1 em{font-style:italic;color:var(--gold)}
+.hero-sub{font-size:1rem;color:rgba(245,240,232,.5);line-height:1.8;margin-bottom:36px;font-weight:300;max-width:500px;margin-left:auto;margin-right:auto}
+.hero-meta{display:flex;gap:28px;justify-content:center;flex-wrap:wrap;margin-bottom:40px}
+.hm{display:flex;flex-direction:column;align-items:center;gap:4px}
+.hm-val{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:var(--gold);line-height:1}
+.hm-label{font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:rgba(245,240,232,.4)}
+.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn-gold{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--ink);font-weight:700;font-size:.8rem;letter-spacing:1.5px;text-transform:uppercase;padding:15px 36px;border-radius:2px;transition:all .25s;box-shadow:0 4px 22px rgba(201,168,76,.35)}
+.btn-gold:hover{background:var(--gold-l);transform:translateY(-2px)}
+.btn-ghost{display:inline-flex;align-items:center;gap:8px;border:1.5px solid rgba(201,168,76,.42);color:var(--gold);font-weight:600;font-size:.8rem;letter-spacing:1.5px;text-transform:uppercase;padding:14px 28px;border-radius:2px;transition:all .25s}
+.btn-ghost:hover{border-color:var(--gold);background:rgba(201,168,76,.08)}
+
+/* Founding family banner */
+.founding-bar{background:var(--gold);padding:16px 48px;text-align:center}
+.founding-bar p{font-size:.85rem;font-weight:600;color:var(--ink);letter-spacing:.3px}
+.founding-bar strong{font-weight:800}
+.founding-bar a{text-decoration:underline;color:var(--burg-d)}
+
+/* Section */
+section{padding:88px 80px}
+.se{font-family:'DM Mono',monospace;font-size:.67rem;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.se::before{content:'';display:block;width:28px;height:1px;background:var(--gold)}
+.sh{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,3rem);font-weight:700;line-height:1.15;color:var(--ink);margin-bottom:16px}
+.sh em{font-style:italic;color:var(--burg)}
+.sb{font-size:1rem;line-height:1.8;color:var(--slate);max-width:560px;font-weight:300;margin-bottom:48px}
+
+/* Tracks */
+.tracks{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.track{border-radius:6px;padding:40px 36px;border:1.5px solid var(--ivory-d);background:var(--ivory);transition:all .3s;position:relative}
+.track:hover{border-color:rgba(201,168,76,.5);box-shadow:0 12px 40px rgba(26,18,16,.1)}
+.track.featured{border-color:var(--gold);background:var(--burg-d);box-shadow:0 16px 48px rgba(26,18,16,.25)}
+.track-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:2px;text-transform:uppercase;padding:4px 14px;border-radius:2px;margin-bottom:20px;font-weight:500}
+.track-badge.beg{background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.4);color:var(--gold)}
+.track-badge.int{background:var(--burg);color:var(--ivory);border:1px solid var(--burg)}
+.track h3{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:700;margin-bottom:8px}
+.track.featured h3{color:var(--ivory)}
+.track:not(.featured) h3{color:var(--ink)}
+.track-tagline{font-size:.84rem;font-weight:300;margin-bottom:24px;line-height:1.6}
+.track.featured .track-tagline{color:rgba(245,240,232,.5)}
+.track:not(.featured) .track-tagline{color:var(--muted)}
+.track-list{display:flex;flex-direction:column;gap:10px;margin-bottom:32px}
+.track-item{display:flex;gap:10px;font-size:.85rem;line-height:1.55;align-items:flex-start}
+.track-item::before{content:'♟';color:var(--gold);flex-shrink:0;margin-top:1px}
+.track.featured .track-item{color:rgba(245,240,232,.72)}
+.track:not(.featured) .track-item{color:var(--slate)}
+.divider{height:1px;margin:24px 0}
+.track.featured .divider{background:rgba(201,168,76,.25)}
+.track:not(.featured) .divider{background:var(--ivory-d)}
+.track-price-row{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+.track-price{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:700;line-height:1}
+.track.featured .track-price{color:var(--gold)}
+.track:not(.featured) .track-price{color:var(--burg)}
+.track-price-period{font-size:.88rem;font-weight:300}
+.track.featured .track-price-period{color:rgba(245,240,232,.45)}
+.track:not(.featured) .track-price-period{color:var(--muted)}
+.track-price-note{font-size:.75rem;margin-bottom:24px}
+.track.featured .track-price-note{color:rgba(245,240,232,.38)}
+.track:not(.featured) .track-price-note{color:var(--muted)}
+.btn-track{display:block;text-align:center;padding:14px;border-radius:2px;font-size:.77rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;transition:all .25s}
+.btn-track.primary{background:var(--gold);color:var(--ink)}
+.btn-track.primary:hover{background:var(--gold-l);transform:translateY(-2px)}
+.btn-track.outline{background:transparent;border:1.5px solid rgba(201,168,76,.4);color:var(--gold)}
+.btn-track.outline:hover{border-color:var(--gold);background:rgba(201,168,76,.08)}
+.btn-track-light{display:block;text-align:center;padding:14px;border-radius:2px;font-size:.77rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border:1.5px solid var(--ivory-d);color:var(--slate);transition:all .25s;background:transparent}
+.btn-track-light:hover{border-color:var(--gold);color:var(--burg)}
+
+/* How it works */
+.hiw{background:var(--ink);position:relative;overflow:hidden}
+.hiw::before{content:'';position:absolute;inset:0;background-image:repeating-conic-gradient(rgba(255,255,255,.018) 0% 25%,transparent 0% 50%);background-size:52px 52px}
+.hiw .sh{color:var(--ivory)}
+.hiw .sh em{color:var(--gold)}
+.hiw .se{color:rgba(201,168,76,.65)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;position:relative;z-index:1}
+.step{text-align:center;padding:32px 20px;border:1px solid rgba(201,168,76,.12);border-radius:4px;background:rgba(255,255,255,.03);transition:border-color .25s}
+.step:hover{border-color:rgba(201,168,76,.35)}
+.step-num{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:700;color:var(--gold);line-height:1;margin-bottom:14px}
+.step-title{font-weight:600;font-size:.9rem;color:var(--ivory);margin-bottom:8px}
+.step-desc{font-size:.79rem;color:rgba(245,240,232,.42);line-height:1.65;font-weight:300}
+
+/* Enroll / form section */
+.enroll-sec{background:linear-gradient(138deg,var(--burg-d) 0%,var(--burg) 100%);position:relative;overflow:hidden}
+.enroll-sec::before{content:'';position:absolute;inset:0;background-image:repeating-conic-gradient(rgba(255,255,255,.018) 0% 25%,transparent 0% 50%);background-size:52px 52px}
+.enroll-sec .sh{color:var(--ivory)}
+.enroll-sec .sh em{color:var(--gold)}
+.enroll-sec .se{color:rgba(201,168,76,.65)}
+.enroll-grid{display:grid;grid-template-columns:1fr 1.3fr;gap:64px;position:relative;z-index:1;margin-top:48px}
+.enroll-info-card{background:rgba(245,240,232,.06);border:1px solid rgba(201,168,76,.18);border-radius:4px;padding:22px 26px;margin-bottom:18px}
+.enroll-info-title{font-family:'Cormorant Garamond',serif;font-size:1.08rem;font-weight:700;color:var(--gold);margin-bottom:8px}
+.enroll-info-body{font-size:.83rem;color:rgba(245,240,232,.62);line-height:1.75;font-weight:300}
+.enroll-info-body strong{color:var(--ivory);font-weight:600}
+.form-card{background:rgba(74,16,32,.6);backdrop-filter:blur(8px);border:1px solid rgba(201,168,76,.15);border-radius:6px;padding:40px}
+.form-card-title{font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:700;color:var(--ivory);margin-bottom:6px}
+.form-card-sub{font-size:.78rem;color:rgba(245,240,232,.4);margin-bottom:28px}
+
+/* FAQ */
+.faq-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:48px}
+.fi{border:1px solid var(--ivory-d);border-radius:4px;overflow:hidden}
+.fq{padding:18px 22px;font-weight:600;font-size:.88rem;cursor:pointer;display:flex;align-items:center;justify-content:space-between;background:var(--ivory);transition:background .2s;user-select:none}
+.fq:hover{background:var(--ivory-d)}
+.fa{max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s;background:var(--cream);font-size:.84rem;color:var(--slate);line-height:1.7;font-weight:300;padding:0 22px}
+.fi.open .fq{background:var(--ivory-d)}
+.fi.open .fa{max-height:280px;padding:16px 22px}
+
+/* Footer */
+.cta-bar{background:var(--burg);padding:40px 80px;display:flex;align-items:center;justify-content:space-between;gap:28px;flex-wrap:wrap;border-top:1px solid rgba(201,168,76,.2)}
+.cta-bar h3{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:700;color:var(--ivory);margin-bottom:4px}
+.cta-bar p{font-size:.82rem;color:rgba(245,240,232,.45);font-weight:300}
+.cl{display:flex;gap:20px;flex-wrap:wrap}
+.clk{display:flex;align-items:center;gap:8px;color:var(--gold);font-size:.86rem;font-weight:500;transition:color .2s}
+.clk:hover{color:var(--gold-l)}
+footer{background:var(--ink);padding:44px 80px 28px;border-top:1px solid rgba(201,168,76,.14)}
+.ft{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:44px;margin-bottom:36px}
+.fn{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:700;color:var(--gold);margin-bottom:8px}
+.ftg{font-size:.75rem;color:rgba(255,255,255,.3);line-height:1.7;font-weight:300}
+.fh{font-family:'DM Mono',monospace;font-size:.63rem;letter-spacing:2px;text-transform:uppercase;color:rgba(201,168,76,.48);margin-bottom:14px}
+.fl{display:flex;flex-direction:column;gap:10px}
+.fl a{font-size:.82rem;color:rgba(255,255,255,.38);transition:color .2s;font-weight:300}
+.fl a:hover{color:var(--gold)}
+.fb{padding-top:20px;border-top:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between;font-size:.7rem;color:rgba(255,255,255,.22);flex-wrap:wrap;gap:8px}
+
+@media(max-width:1024px){
+  section{padding:72px 48px}
+  nav{padding:0 28px}
+  .tracks,.enroll-grid{grid-template-columns:1fr;gap:24px}
+  .steps{grid-template-columns:1fr 1fr}
+  .faq-grid{grid-template-columns:1fr}
+  .ft{grid-template-columns:1fr 1fr}
+  .cta-bar,.founding-bar{padding:40px 48px}
+  footer{padding:44px 48px 28px}
+}
+@media(max-width:640px){
+  section{padding:56px 24px}
+  nav{padding:0 20px}
+  .nv{display:none}
+  .mb{display:block}
+  .steps{grid-template-columns:1fr}
+  .hero{padding:108px 24px 64px}
+  .hero-meta{gap:20px}
+  .hero-btns{flex-direction:column;align-items:center}
+  .ft{grid-template-columns:1fr}
+  .cta-bar{flex-direction:column;align-items:flex-start;padding:40px 24px}
+  .founding-bar{padding:16px 24px}
+  footer{padding:40px 24px 24px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nl">
+    <div>
+      <div class="nm">Young Horizon Chess</div>
+      <div class="nav-sub">Online Classes</div>
+    </div>
+  </div>
+  <div class="nv">
+    <a href="#tracks">Tracks</a>
+    <a href="#how">How It Works</a>
+    <a href="#faq">FAQ</a>
+    <a href="/">Main Site</a>
+    <a href="#enroll" class="nc">Enroll Now</a>
+  </div>
+  <button class="mb" onclick="tg()" aria-label="Menu">☰</button>
+</nav>
+<div class="mm" id="mb">
+  <a href="#tracks" onclick="tg()">Tracks</a>
+  <a href="#how" onclick="tg()">How It Works</a>
+  <a href="#faq" onclick="tg()">FAQ</a>
+  <a href="/" onclick="tg()">Main Site</a>
+  <a href="#enroll" onclick="tg()" style="color:var(--gold);font-weight:700">Enroll Now</a>
+</div>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="badge rv">Now Enrolling — September 2026</div>
+    <h1 class="rv">Weekly chess coaching,<br><em>live online.</em></h1>
+    <p class="hero-sub rv">Taught by skilled instructors. Two tracks. Maximum 8 students per group. No commute required.</p>
+    <div class="hero-meta rv">
+      <div class="hm"><div class="hm-val">45<span style="font-size:1.1rem">min</span></div><div class="hm-label">Per Class</div></div>
+      <div class="hm"><div class="hm-val">8</div><div class="hm-label">Max Per Group</div></div>
+      <div class="hm"><div class="hm-val">6–12</div><div class="hm-label">Age Range</div></div>
+      <div class="hm"><div class="hm-val">$89</div><div class="hm-label">Per Month</div></div>
+    </div>
+    <div class="hero-btns rv">
+      <a href="#enroll" class="btn-gold">♟ Enroll Now</a>
+      <a href="#tracks" class="btn-ghost">See the Tracks</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── FOUNDING FAMILY BANNER ── -->
+<div class="founding-bar">
+  <p>⭐ <strong>Boot Camp Alumni:</strong> You qualify for our Founding Family rate of <strong>$69/month</strong> — locked in for life. <a href="#enroll">Reply to your certificate email</a> or enroll below.</p>
+</div>
+
+<!-- ── TRACKS ── -->
+<section id="tracks">
+  <div class="se">Choose Your Track</div>
+  <h2 class="sh rv">Two tracks.<br><em>One goal.</em></h2>
+  <p class="sb rv">Every student is placed in the track that matches their current level. Not sure which one? Email us and we'll help you decide.</p>
+
+  <div class="tracks">
+    <!-- Rooks -->
+    <div class="track rv">
+      <div class="track-badge beg">Rooks Track</div>
+      <h3>Beginners &amp; Developing Players</h3>
+      <p class="track-tagline">No experience needed. We start from zero and build real, lasting skills.</p>
+      <div class="track-list">
+        <div class="track-item">How all pieces move, board setup, basic rules</div>
+        <div class="track-item">The 4 Opening Principles — the foundation of every good game</div>
+        <div class="track-item">The Italian Game opening from move 1</div>
+        <div class="track-item">Scholar's Mate trick and how to defend it</div>
+        <div class="track-item">Basic tactics: forks, pins, back rank mates</div>
+        <div class="track-item">Monthly mini-tournament with the group</div>
+      </div>
+      <div class="divider"></div>
+      <div class="track-price-row">
+        <div class="track-price"><sup style="font-size:1.3rem">$</sup>89</div>
+        <div class="track-price-period">/ month</div>
+      </div>
+      <p class="track-price-note">4 live classes · No contract · Cancel anytime</p>
+      <a href="#enroll" class="btn-track-light">Enroll in Rooks Track</a>
+    </div>
+
+    <!-- Queens (featured) -->
+    <div class="track featured rv">
+      <div class="track-badge int">Queens Track</div>
+      <h3>Intermediate Players</h3>
+      <p class="track-tagline">For kids who know the basics and are ready to think like a real chess player.</p>
+      <div class="track-list">
+        <div class="track-item">Advanced tactics: pins, skewers, discovered attacks</div>
+        <div class="track-item">Opening repertoire: Italian Game, Sicilian Defence basics</div>
+        <div class="track-item">Endgame essentials: king activation, the square rule</div>
+        <div class="track-item">Game analysis — reviewing your own decisions</div>
+        <div class="track-item">Tournament preparation and competitive mindset</div>
+        <div class="track-item">Monthly tournament &amp; individual game review</div>
+      </div>
+      <div class="divider"></div>
+      <div class="track-price-row">
+        <div class="track-price"><sup style="font-size:1.3rem">$</sup>89</div>
+        <div class="track-price-period">/ month</div>
+      </div>
+      <p class="track-price-note">4 live classes · No contract · Cancel anytime</p>
+      <a href="#enroll" class="btn-track primary">Enroll in Queens Track</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="hiw" id="how">
+  <div class="se">How It Works</div>
+  <h2 class="sh rv">Simple to start,<br><em>powerful to stick with.</em></h2>
+  <div class="steps" style="margin-top:52px">
+    <div class="step rv">
+      <div class="step-num">1</div>
+      <div class="step-title">Enroll Below</div>
+      <div class="step-desc">Fill out the enrollment form. We confirm your spot and track within one business day.</div>
+    </div>
+    <div class="step rv">
+      <div class="step-num">2</div>
+      <div class="step-title">Get Your Zoom Link</div>
+      <div class="step-desc">We send a permanent weekly Zoom link plus the Lichess board link for following along. Works on any device.</div>
+    </div>
+    <div class="step rv">
+      <div class="step-num">3</div>
+      <div class="step-title">Show Up and Play</div>
+      <div class="step-desc">45 minutes of live instruction, drills, and games every week. Same time, same link — no setup required.</div>
+    </div>
+    <div class="step rv">
+      <div class="step-num">4</div>
+      <div class="step-title">Track Progress</div>
+      <div class="step-desc">Monthly parent update. Skill certificates when your child advances. Encouragement every step of the way.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ENROLL ── -->
+<section class="enroll-sec" id="enroll">
+  <div class="se">Enroll Now</div>
+  <h2 class="sh rv">Reserve your child's<br><em>spot today.</em></h2>
+  <p class="sb rv">Maximum 8 students per class. Once a group is full we open a waitlist for the next cohort. Classes start the week of September 7, 2026.</p>
+
+  <div class="enroll-grid">
+    <div>
+      <div class="enroll-info-card rv">
+        <div class="enroll-info-title">💻 What You Need</div>
+        <div class="enroll-info-body"><strong>Any device with Zoom</strong> — laptop or tablet works best. We also use Lichess.org (free, browser-based) for the demo board and live games. A mouse helps but isn't required.</div>
+      </div>
+      <div class="enroll-info-card rv">
+        <div class="enroll-info-title">📅 Start Date</div>
+        <div class="enroll-info-body"><strong>Week of September 7, 2026.</strong> Your specific day and time is confirmed after enrollment based on group availability. We schedule around what works for enrolled families.</div>
+      </div>
+      <div class="enroll-info-card rv">
+        <div class="enroll-info-title">⭐ Boot Camp Alumni Rate</div>
+        <div class="enroll-info-body">If your child attended our July 2026 Edmonton Boot Camp, you qualify for <strong>$69/month</strong> (vs $89 regular). Reply to the certificate email you received on July 24 to claim this rate, or mention it in the enrollment form below.</div>
+      </div>
+      <div class="enroll-info-card rv">
+        <div class="enroll-info-title">💳 Billing</div>
+        <div class="enroll-info-body">Monthly via Stripe. <strong>No contract — cancel anytime</strong> with 7 days notice before your next billing date. We send a payment link once your spot is confirmed.</div>
+      </div>
+      <div class="enroll-info-card rv">
+        <div class="enroll-info-title">📞 Questions?</div>
+        <div class="enroll-info-body"><strong><a href="mailto:support@younghorizonchess.ca" style="color:var(--gold)">support@younghorizonchess.ca</a></strong><br><strong>437-216-3282</strong><br>We respond within 1 business day.</div>
+      </div>
+    </div>
+
+    <div class="form-card rv">
+      <div class="form-card-title">Online Classes — Enrollment</div>
+      <div class="form-card-sub">Complete the form and we'll confirm your spot within one business day</div>
+
+      <!-- Pricing reminder -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px">
+        <div style="flex:1;min-width:140px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);border-radius:4px;padding:12px 16px">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--gold);line-height:1">$89<span style="font-size:.9rem;font-weight:300;color:rgba(245,240,232,.45)">/mo</span></div>
+          <div style="font-size:.72rem;color:rgba(245,240,232,.55);margin-top:3px">Regular rate · Rooks or Queens</div>
+        </div>
+        <div style="flex:1;min-width:140px;background:rgba(201,168,76,.2);border:1px solid rgba(201,168,76,.5);border-radius:4px;padding:12px 16px">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--gold);line-height:1">$69<span style="font-size:.9rem;font-weight:300;color:rgba(245,240,232,.45)">/mo</span></div>
+          <div style="font-size:.72rem;color:rgba(245,240,232,.55);margin-top:3px">⭐ Founding rate · Boot camp alumni</div>
+        </div>
+      </div>
+
+      <iframe
+        data-tally-src="https://tally.so/embed/LZqLkl?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1"
+        loading="lazy"
+        width="100%"
+        height="680"
+        frameborder="0"
+        marginheight="0"
+        marginwidth="0"
+        title="Young Horizon Chess — Online Class Enrollment"
+        style="display:block;">
+      </iframe>
+      <script>
+        var d=document,w="https://tally.so/widgets/embed.js",
+        v=function(){"undefined"!=typeof Tally
+          ?Tally.loadEmbeds()
+          :d.querySelectorAll("iframe[data-tally-src]:not([src])").forEach(function(e){e.src=e.dataset.tallySrc})};
+        if("undefined"!=typeof Tally)v();
+        else if(d.querySelector('script[src="'+w+'"]')==null){
+          var s=d.createElement("script");s.src=w;s.onload=v;s.onerror=v;d.body.appendChild(s);
+        }
+      </script>
+
+      <div style="margin-top:20px;padding:16px;background:rgba(245,240,232,.06);border-radius:4px;border-left:3px solid var(--gold)">
+        <div style="font-size:.78rem;font-weight:600;color:var(--ivory);margin-bottom:4px">What happens after you submit</div>
+        <div style="font-size:.75rem;color:rgba(245,240,232,.5);line-height:1.7">We'll review your form and email you within <strong style="color:rgba(245,240,232,.75)">1 business day</strong> to confirm your track, class time, and send a Stripe payment link. Your spot is not reserved until payment is confirmed. No long-term contract — cancel anytime.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FAQ ── -->
+<section id="faq">
+  <div class="se">FAQ</div>
+  <h2 class="sh rv">Common questions,<br><em>straight answers.</em></h2>
+  <div class="faq-grid">
+    <div class="fi rv"><div class="fq" onclick="fq(this)">Does my child need to know chess? <span>▾</span></div><div class="fa">Not for the Rooks Track. We start from the very beginning — how pieces move, board setup, and basic rules. If your child is brand new to chess, Rooks is the right place to start.</div></div>
+    <div class="fi rv"><div class="fq" onclick="fq(this)">How do I know which track to choose? <span>▾</span></div><div class="fa">Rooks: new to chess or playing less than a year. Queens: knows all the rules, can set up and play a full game independently, and has some competitive experience. If you're unsure, email us and we'll help place your child correctly.</div></div>
+    <div class="fi rv"><div class="fq" onclick="fq(this)">What device does my child need? <span>▾</span></div><div class="fa">Any device that runs Zoom — laptop, desktop, or tablet work best. We use Lichess.org for the demo board and live games, which is free and works in any browser. A mouse makes it easier to move pieces but isn't required.</div></div>
+    <div class="fi rv"><div class="fq" onclick="fq(this)">What if my child misses a class? <span>▾</span></div><div class="fa">All sessions are recorded and sent to enrolled families within 24 hours. The curriculum is designed with natural review built in, so missing one class doesn't put your child behind. Consistent attendance produces the best results, but life happens.</div></div>
+    <div class="fi rv"><div class="fq" onclick="fq(this)">Is there a contract or minimum commitment? <span>▾</span></div><div class="fa">No contract. We bill monthly and you can cancel anytime with 7 days notice before your next billing date. We recommend committing to at least 3 months to see real progress — chess is a skill that compounds over time.</div></div>
+    <div class="fi rv"><div class="fq" onclick="fq(this)">What is the Founding Family rate? <span>▾</span></div><div class="fa">Families who attended the July 2026 Edmonton Boot Camp qualify for $69/month instead of the regular $89/month. This rate is locked in permanently as long as you stay enrolled. Mention it in the enrollment form or reply to the certificate email you received on July 24.</div></div>
+    <div class="fi rv"><div class="fq" onclick="fq(this)">Are classes on a fixed schedule? <span>▾</span></div><div class="fa">We schedule class times based on what works for enrolled families. After you enroll, we'll send a short scheduling form to find the best time for your group. Typical options: weekday after school (4–6 PM) or Saturday/Sunday morning.</div></div>
+    <div class="fi rv"><div class="fq" onclick="fq(this)">Is this connected to the summer boot camp? <span>▾</span></div><div class="fa">Yes — same instructor (Ife Akinpelu), same curriculum philosophy. Online classes are the year-round weekly program. The boot camp is our annual summer intensive in Edmonton. Many students will do both: classes during the school year, boot camp each July.</div></div>
+  </div>
+</section>
+
+<!-- ── CTA BAR ── -->
+<div class="cta-bar">
+  <div>
+    <h3>Ready to enroll — or have a question?</h3>
+    <p>We respond within one business day.</p>
+  </div>
+  <div class="cl">
+    <a class="clk" href="mailto:support@younghorizonchess.ca">✉ support@younghorizonchess.ca</a>
+    <a class="clk" href="tel:4372163282">📞 437-216-3282</a>
+  </div>
+</div>
+
+<footer>
+  <div class="ft">
+    <div>
+      <div class="fn">♟ Young Horizon Chess</div>
+      <div class="ftg">Developing the next generation of strategic thinkers — one move at a time.<br>Live online classes &amp; Edmonton summer boot camp.<br><a href="https://younghorizonchess.ca" style="color:rgba(201,168,76,.5)">younghorizonchess.ca</a></div>
+    </div>
+    <div>
+      <div class="fh">Quick Links</div>
+      <div class="fl">
+        <a href="#tracks">Choose a Track</a>
+        <a href="#how">How It Works</a>
+        <a href="#enroll">Enroll Now</a>
+        <a href="#faq">FAQ</a>
+        <a href="/">Main Site</a>
+      </div>
+    </div>
+    <div>
+      <div class="fh">Contact</div>
+      <div class="fl">
+        <a href="mailto:support@younghorizonchess.ca">support@younghorizonchess.ca</a>
+        <a href="tel:4372163282">437-216-3282</a>
+        <a href="https://younghorizonchess.ca">younghorizonchess.ca</a>
+      </div>
+    </div>
+  </div>
+  <div class="fb">
+    <span>© 2026 Young Horizon Chess. All rights reserved.</span>
+    <span>younghorizonchess.ca/classes</span>
+  </div>
+</footer>
+
+<script>
+var ro=new IntersectionObserver(function(es){
+  es.forEach(function(e,i){
+    if(e.isIntersecting){setTimeout(function(){e.target.classList.add('on');},i*55);ro.unobserve(e.target);}
+  });
+},{threshold:0.06,rootMargin:'0px 0px -32px 0px'});
+document.querySelectorAll('.rv').forEach(function(el){ro.observe(el);});
+function tg(){document.getElementById('mb').classList.toggle('open');}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('nav')&&!e.target.closest('#mb'))document.getElementById('mb').classList.remove('open');
+});
+function fq(el){
+  var it=el.closest('.fi'),ans=it.querySelector('.fa'),open=it.classList.contains('open');
+  document.querySelectorAll('.fi.open').forEach(function(f){f.classList.remove('open');f.querySelector('.fa').style.maxHeight='0';});
+  if(!open){it.classList.add('open');ans.style.maxHeight=ans.scrollHeight+'px';}
+}
+</script>
+</body>
+</html>
