@@ -1022,6 +1022,23 @@ window.exportJSON = () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // SETTINGS
 // ─────────────────────────────────────────────────────────────────────────────
+// Populate cert settings inputs from localStorage (safe — no template literals in HTML)
+function loadCertSettings() {
+  // Auto-fix corrupt value (literal ${...} string saved by old bug)
+  const stored = localStorage.getItem("yhc_instructor_name") || "";
+  const isCorrupt = stored.includes("${") || stored.includes("localStorage");
+  const name = isCorrupt ? "Ife Akinpelu" : (stored || "Ife Akinpelu");
+  if (isCorrupt) localStorage.removeItem("yhc_instructor_name");
+  const el = document.getElementById("cfg_instructor_name");
+  if (el) el.value = name;
+  const hasSig = !!localStorage.getItem("yhc_signature_img");
+  const prev = document.getElementById("sigPreview");
+  if (prev) prev.innerHTML = hasSig
+    ? '<span style="color:var(--green,#27ae60)">✓ Signature uploaded</span>'
+    : 'No signature uploaded — italic name used as fallback';
+}
+document.addEventListener("DOMContentLoaded", loadCertSettings);
+
 window.saveSettings = () => {
   ["apiKey","authDomain","projectId","storageBucket","messagingSenderId","appId"].forEach(k=>{
     const v=document.getElementById("cfg_"+k)?.value?.trim();
@@ -1033,7 +1050,8 @@ window.saveSettings = () => {
   });
   const instrName=document.getElementById("cfg_instructor_name")?.value?.trim();
   if(instrName) localStorage.setItem("yhc_instructor_name", instrName);
-  alert("Settings saved. Reload the page to apply changes.");
+  loadCertSettings();
+  alert("Settings saved.");
 };
 window.sendTestEmail = async () => {
   const result = document.getElementById("testEmailResult");
@@ -1545,11 +1563,11 @@ Bob Jones, 11, Intermediate (Ages 9-10), bob@example.com, 780-555-5678"></textar
       <div class="card">
         <div class="card-title">Certificate Settings</div>
         <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Your name and signature appear on every certificate.</p>
-        <div class="fg" style="margin-bottom:.65rem"><label>Instructor Name</label><input id="cfg_instructor_name" placeholder="Ife Akinpelu" value="${localStorage.getItem('yhc_instructor_name')||'Ife Akinpelu'}"></div>
+        <div class="fg" style="margin-bottom:.65rem"><label>Instructor Name</label><input id="cfg_instructor_name" placeholder="Ife Akinpelu" value=""></div>
         <div class="fg">
           <label>Signature Image <span style="font-weight:300;color:var(--muted)">(PNG/JPG — sign on white paper, photo &amp; crop tight)</span></label>
           <input type="file" id="cfg_sig_file" accept="image/png,image/jpeg" style="font-size:13px;padding:.3rem 0">
-          <div id="sigPreview" style="margin-top:.4rem;font-size:12px;color:var(--muted)">${localStorage.getItem('yhc_signature_img') ? '<span style="color:var(--green,#27ae60)">✓ Signature uploaded</span>' : 'No signature uploaded — italic name used as fallback'}</div>
+          <div id="sigPreview" style="margin-top:.4rem;font-size:12px;color:var(--muted)">Loading…</div>
         </div>
         <button class="btn-sm" style="margin-top:.4rem" onclick="
           const f=document.getElementById('cfg_sig_file').files[0];
