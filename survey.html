@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>End-of-Camp Survey | Young Horizon Chess 2026</title>
+<meta name="description" content="Tell us how we did! Your feedback helps us make Young Horizon Chess even better.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Mono:wght@400;500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--burg:#6B1A2A;--burg-d:#4A1020;--gold:#C9A84C;--gold-l:#E2C47A;--ivory:#F5F0E8;--ivory-d:#EDE7D9;--cream:#FAF7F2;--ink:#1A1210;--slate:#4A3F3A;--muted:#7A6E68}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Jost',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh}
+a{color:inherit;text-decoration:none}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:64px;background:rgba(26,18,16,.96);backdrop-filter:blur(14px);border-bottom:1px solid rgba(201,168,76,.2)}
+.nm{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:700;color:var(--gold)}
+.nav-back{font-size:.73rem;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.45);transition:color .2s;display:flex;align-items:center;gap:8px}
+.nav-back:hover{color:var(--gold)}
+
+.hero-strip{background:var(--burg-d);padding:100px 48px 56px;text-align:center;border-bottom:2px solid var(--gold);position:relative;overflow:hidden}
+.hero-strip::before{content:'';position:absolute;inset:0;background-image:repeating-conic-gradient(rgba(255,255,255,.02) 0% 25%,transparent 0% 50%);background-size:52px 52px}
+.hero-strip h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,5vw,3.6rem);font-weight:700;color:var(--ivory);margin-bottom:10px;position:relative;line-height:1.1}
+.hero-strip h1 em{font-style:italic;color:var(--gold)}
+.hero-strip p{font-size:.95rem;color:rgba(245,240,232,.5);font-weight:300;max-width:480px;margin:0 auto;line-height:1.75;position:relative}
+.badge{display:inline-block;font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:2px;text-transform:uppercase;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.4);color:var(--gold);padding:5px 14px;border-radius:2px;margin-bottom:22px;position:relative}
+
+.form-wrap{max-width:720px;margin:0 auto;padding:56px 24px 80px}
+
+footer{background:var(--ink);padding:32px 48px;text-align:center;border-top:1px solid rgba(201,168,76,.14)}
+.footer-text{font-size:.72rem;color:rgba(255,255,255,.25)}
+
+@media(max-width:640px){
+  nav{padding:0 20px}
+  .hero-strip{padding:96px 24px 48px}
+  .form-wrap{padding:40px 16px 64px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nm">Young Horizon Chess</div>
+  <a class="nav-back" href="/">← Back to site</a>
+</nav>
+
+<div class="hero-strip">
+  <div class="badge">Boot Camp 2026 · July 13–24</div>
+  <h1>You helped us build<br><em>something special.</em></h1>
+  <p>Take 3 minutes to tell us how it went. Your answers shape what Young Horizon Chess becomes next.</p>
+</div>
+
+<div class="form-wrap">
+  <!--
+    SETUP INSTRUCTIONS:
+    1. Go to tally.so and create a new form
+    2. Add the 6 questions listed below
+    3. In Tally: Share → Embed → copy the form ID from the embed URL
+       (it looks like: https://tally.so/embed/XXXXXX — copy the XXXXXX part)
+    4. Replace YOUR_TALLY_FORM_ID below with that ID
+    5. Push survey.html to GitHub — done!
+
+    ── TALLY FORM QUESTIONS TO BUILD ──────────────────────────────────────
+
+    Form title: Young Horizon Chess — End of Camp Survey 2026
+    (Set a "thank you" message in Tally: "Thank you! We read every response.")
+
+    Q1 — Rating (use Tally's "Rating" question type, 1–5 stars)
+    Label: How would you rate Young Horizon Chess Boot Camp overall?
+    Description: Think about the full two weeks — instruction, organisation, communication, and value.
+
+    Q2 — Multiple choice / checkboxes (allow multiple selections)
+    Label: What did your child enjoy most about camp?
+    Options:
+      - Chess lessons and instruction
+      - Tournament games and competition
+      - Puzzle races and group activities
+      - Making friends and the camp community
+      - The certificate and passport stamps
+      - The instructor (Ife) and staff
+
+    Q3 — Long text
+    Label: Is there anything we could improve?
+    Description: Be honest — every piece of feedback directly improves the next camp.
+
+    Q4 — Multiple choice (single selection)
+    Label: Would you enroll your child in weekly online chess classes?
+    Description: Live on Zoom · 45 min/week · Starting September 2026 · $89/month (boot camp families: $69/month founding rate)
+    Options:
+      - Yes — definitely interested
+      - Maybe — send me the details and I'll decide
+      - Not right now — but keep me on the list
+      - No — not interested at this time
+
+    Q5 — Multiple choice (single selection)
+    Label: If you joined online classes, what day/time works best?
+    Options:
+      - Weekday after school (Mon–Thu, 4–6 PM)
+      - Saturday morning (10 AM – 12 PM)
+      - Saturday afternoon (1–3 PM)
+      - Sunday (any time)
+
+    Q6 — Multiple choice + long text + short text
+    Part A (multiple choice, single):
+    Label: Would you recommend Young Horizon Chess to another family?
+    Options:
+      - Definitely — already have!
+      - Yes, I would recommend it
+      - Probably — with some improvements
+      - No — not at this time
+
+    Part B (long text, optional):
+    Label: Optional: Share a sentence or two we could use as a testimonial on our website.
+    Placeholder: e.g. "My daughter came home every day excited to tell me what she learned..."
+
+    Part C (short text, optional):
+    Label: Your name (for the testimonial — optional)
+
+    ────────────────────────────────────────────────────────────────────────
+  -->
+
+  <iframe
+    data-tally-src="https://tally.so/embed/YOUR_TALLY_FORM_ID?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1"
+    loading="lazy"
+    width="100%"
+    height="900"
+    frameborder="0"
+    marginheight="0"
+    marginwidth="0"
+    title="Young Horizon Chess — End of Camp Survey 2026"
+    style="border-radius:6px;border:1px solid rgba(201,168,76,.15);display:block;">
+  </iframe>
+  <script>
+    var d=document,w="https://tally.so/widgets/embed.js",
+    v=function(){"undefined"!=typeof Tally
+      ?Tally.loadEmbeds()
+      :d.querySelectorAll("iframe[data-tally-src]:not([src])").forEach(function(e){e.src=e.dataset.tallySrc})};
+    if("undefined"!=typeof Tally)v();
+    else if(d.querySelector('script[src="'+w+'"]')==null){
+      var s=d.createElement("script");s.src=w;s.onload=v;s.onerror=v;d.body.appendChild(s);
+    }
+  </script>
+</div>
+
+<footer>
+  <div class="footer-text">© 2026 Young Horizon Chess &nbsp;·&nbsp; younghorizonchess.ca &nbsp;·&nbsp; support@younghorizonchess.ca</div>
+</footer>
+
+</body>
+</html>
