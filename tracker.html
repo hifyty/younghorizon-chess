@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Young Horizon Chess — Camp Tracker</title>
+<title>Young Horizon Chess — Student Tracker</title>
 
 <!-- Firebase 10 (modular, loaded as type=module) -->
 <script type="module">
@@ -1083,7 +1083,7 @@ window.sendTestEmail = async () => {
   if (!toEmail) { localStorage.setItem("yhc_brevo_key",_prev_key||""); localStorage.setItem("yhc_brevo_sender",_prev_sender||""); return; }
   try {
     await sendEmailViaBrevo(toEmail, "Camp Admin", "✅ Young Horizon Chess — Email Test",
-      "This is a test email from the Young Horizon Chess Camp Tracker.\n\nIf you received this, Brevo is working correctly and you can send parent emails from the Comms tab.\n\nCamp dates: July 13–24, 2026.");
+      "This is a test email from the Young Horizon Chess Student Tracker.\n\nIf you received this, Brevo is working correctly and you can send parent emails from the Comms tab.\n\nCamp dates: July 13–24, 2026.");
     if(result) result.innerHTML='<span style="color:var(--green,#27ae60)">✅ Test email sent to '+toEmail+'. Check your inbox (and spam folder).</span>';
     addLog("✉️ Test email sent to "+toEmail);
   } catch(e) {
@@ -1343,12 +1343,12 @@ ol{padding-left:1.2rem;line-height:1.9;font-size:13px;color:var(--text)}
 <div id="loginScreen" class="screen show">
 <div class="auth-card">
   <h1>♟ Young Horizon Chess</h1>
-  <p class="sub">Camp Tracker — Admin Login</p>
+  <p class="sub">Student Tracker — Admin Login</p>
   <div class="fg"><label>Email</label><input id="loginEmail" type="email" placeholder="admin@example.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
   <div class="fg"><label>Password</label><input id="loginPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
   <div id="loginErr" style="color:#f87171;font-size:13px;min-height:18px;margin:.25rem 0"></div>
   <button class="btn-primary" onclick="doLogin()" style="width:100%;padding:.65rem;margin-top:.5rem">Sign In</button>
-  <p style="margin-top:1rem;font-size:12px;color:var(--muted);text-align:center">Restricted to authorized camp staff only.</p>
+  <p style="margin-top:1rem;font-size:12px;color:var(--muted);text-align:center">Restricted to authorized staff only.</p>
 </div>
 </div>
 
@@ -1361,7 +1361,7 @@ ol{padding-left:1.2rem;line-height:1.9;font-size:13px;color:var(--text)}
       <span style="font-size:24px">♟</span>
       <div>
         <h1>Young Horizon Chess</h1>
-        <div class="brand-sub">Summer Boot Camp 2026 · July 13–24 · Edmonton</div>
+        <div class="brand-sub">Online Classes · Boot Camp Alumni</div>
       </div>
     </div>
     <div class="top-right">
